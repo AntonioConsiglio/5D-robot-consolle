@@ -49,7 +49,7 @@ class CommandButton():
         return frame
 
     def __buttonCreator(self,**kwargs):
-        img = Image.open(f'{kwargs["tipo"]}.png')
+        img = Image.open(f'images\\{kwargs["tipo"]}.png')
         img = ImageTk.PhotoImage(img)
         button = tk.Button(self.frame,image=img,command = self.__donothing,borderwidth=0)
         button.image=img

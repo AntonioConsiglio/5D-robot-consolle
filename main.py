@@ -67,7 +67,7 @@ if __name__ == '__main__':
     ## FRAME SX
 
     robotCanva = tk.Canvas(frameSX)
-    imageTK = ImageTk.PhotoImage(Image.open('robot.png'))
+    imageTK = ImageTk.PhotoImage(Image.open(r'images\\robot.png'))
     robotCanva.create_image(0,5,image = imageTK,anchor='nw')
     robotCanva.image = imageTK
     robotCanva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)

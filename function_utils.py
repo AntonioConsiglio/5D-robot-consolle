@@ -23,9 +23,7 @@ class SerialConnection():
 
     def connection(self):
         porta = self.porta.get()
-        porta = porta[2:len(porta)-3]
-        baudrate = self.baud_rate.get()
-        baudrate = int(baudrate[2:len(baudrate)-3])
+        baudrate = int(self.baud_rate.get())
         self.arduino = serial.Serial(port=porta,baudrate=baudrate,timeout=0.1)
         print('Connesso !')
 
@@ -84,9 +82,10 @@ class CommandButton():
 
 def createSerialInterface(frameSX,porta,list_seria_port,baud_rate,setConnection,updatePortAvailable):
 
+    baudList = ["9600","38400"]
     connectionFrame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
-    setPorta = tk.OptionMenu(connectionFrame,variable=porta,value=list_seria_port)
-    setBaudrate = tk.OptionMenu(connectionFrame,variable=baud_rate,value=['9600'])
+    setPorta = tk.OptionMenu(connectionFrame,porta,*list_seria_port)
+    setBaudrate = tk.OptionMenu(connectionFrame,baud_rate,*baudList)
     pulsanteProva = tk.Button(connectionFrame,text='CONNECT',command=lambda: setConnection(pulsanteProva),bg='green',font='Helvetic 10 bold')
     pulsanteProva1 = tk.Button(connectionFrame,text='refresh port',command=lambda: updatePortAvailable(setPorta,connectionFrame),
                                 bg='lightblue',font='Helvetic 8 bold')

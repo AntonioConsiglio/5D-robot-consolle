@@ -13,28 +13,29 @@ def commandButtonsHandel(buttons,arduino):
         try:    
             if  arduino.arduino is not None:
                 for button in buttons:
-                        if button.message is None:
-                             print(arduino.arduino.read(1))
-                        if button.message is not None:
-                            if j == 0:
-                                print('START')
-                                j+=1
-                            messaggio = button.message
-                            if messaggio != b'0':
-                                arduino.arduino.write(messaggio)
-                                risposta = arduino.arduino.read(1)
-                            if messaggio == b'0':
-                                risposta = b'555555'
-                                while risposta != b'0':
-                                    arduino.arduino.write(b'0')
-                                    risposta = arduino.arduino.read(1)
-                                    print('risposta_dopo_zero',risposta)
-                                print('ho inviato lo ZEROOO')
-                                j=0
-                                button.message = None   
-                            print(risposta)
-        except:
-            break
+                    if button.message is not None:
+                        if j == 0:
+                            print('START')
+                            j+=1
+                        messaggio = button.message
+                        if messaggio != b'0':
+                            print(f'message_sent: {messaggio}')
+                            arduino.arduino.write(messaggio)
+                            risposta = arduino.arduino.readline().decode('ascii')
+                            button.message = None
+                            print(f'risposta: {risposta}')
+                            break
+                        if messaggio == b'0':
+                            arduino.arduino.write(b'0')
+                            risposta = arduino.arduino.readline().decode('ascii')
+                            print('messaggio inviato')
+                            j=0
+                            button.message = None   
+                        
+        except Exception as e:
+            print(e)
+            pass
+            #break
                     
 
 def setConnection(button):

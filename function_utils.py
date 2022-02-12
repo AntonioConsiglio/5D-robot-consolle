@@ -6,6 +6,7 @@ date: 2022-01-30
 Here there are the useful function to run the ROBOT ARM 5D. This script could be improved but the name of the funcion will remain the same as the start
 '''
 
+from socket import timeout
 import serial
 import numpy as np
 import tkinter as tk
@@ -25,8 +26,13 @@ class SerialConnection():
         porta = porta[2:len(porta)-3]
         baudrate = self.baud_rate.get()
         baudrate = int(baudrate[2:len(baudrate)-3])
-        self.arduino = serial.Serial(port=porta,baudrate=baudrate)
+        self.arduino = serial.Serial(port=porta,baudrate=baudrate,timeout=0.1)
         print('Connesso !')
+
+    def disconnet(self):
+        self.arduino.close()
+        print('Disconnesso !')
+
     
 
 class CommandButton():
@@ -58,9 +64,9 @@ class CommandButton():
         return button
     
     def __donothing(self):
+        self.message = b'0'
         self.ButtonMenosPress = False
         self.ButtonPlusPress = False
-        self.message = None
         print('END')
 
     def __dosomething(self,event,button):
@@ -81,7 +87,7 @@ def createSerialInterface(frameSX,porta,list_seria_port,baud_rate,setConnection,
     connectionFrame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
     setPorta = tk.OptionMenu(connectionFrame,variable=porta,value=list_seria_port)
     setBaudrate = tk.OptionMenu(connectionFrame,variable=baud_rate,value=['9600'])
-    pulsanteProva = tk.Button(connectionFrame,text='CONNECT',command=setConnection,bg='green',font='Helvetic 10 bold')
+    pulsanteProva = tk.Button(connectionFrame,text='CONNECT',command=lambda: setConnection(pulsanteProva),bg='green',font='Helvetic 10 bold')
     pulsanteProva1 = tk.Button(connectionFrame,text='refresh port',command=lambda: updatePortAvailable(setPorta,connectionFrame),
                                 bg='lightblue',font='Helvetic 8 bold')
     label1 = tk.Label(connectionFrame,text='SERIAL PORT',bg = 'black',fg='white',borderwidth=0)

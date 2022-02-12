@@ -1,4 +1,3 @@
-from turtle import color
 import serial
 import tkinter as tk
 import time
@@ -8,16 +7,48 @@ from threading import Thread
 import serial.tools.list_ports as p
 
 
-def commandButtonsHandel(buttons):
+def commandButtonsHandel(buttons,arduino):
+    j = 0
     while True:
-        for button in buttons:
-            if button.message is not None:
-                print(button.message)
+        try:    
+            if  arduino.arduino is not None:
+                for button in buttons:
+                        if button.message is None:
+                             print(arduino.arduino.read(1))
+                        if button.message is not None:
+                            if j == 0:
+                                print('START')
+                                j+=1
+                            messaggio = button.message
+                            if messaggio != b'0':
+                                arduino.arduino.write(messaggio)
+                                risposta = arduino.arduino.read(1)
+                            if messaggio == b'0':
+                                risposta = b'555555'
+                                while risposta != b'0':
+                                    arduino.arduino.write(b'0')
+                                    risposta = arduino.arduino.read(1)
+                                    print('risposta_dopo_zero',risposta)
+                                print('ho inviato lo ZEROOO')
+                                j=0
+                                button.message = None   
+                            print(risposta)
+        except:
+            break
+                    
 
-def setConnection():
+def setConnection(button):
     global porta, baud_rate
     if porta is not None and baud_rate is not None:
-        serialConn.connection()
+        if arduino.arduino is None:
+            arduino.connection()
+            button['text'] = 'DISCONNECT'
+            button['bg'] = 'red'
+        else:
+            arduino.disconnet()
+            arduino.arduino = None
+            button['text'] = 'CONNECT'
+            button['bg'] = 'green'
 
 def updatePortAvailable(daUpdate,frameUpdate):
     global list_serial_port,porta
@@ -27,8 +58,6 @@ def updatePortAvailable(daUpdate,frameUpdate):
     for port in list_serial_port:
         daUpdate['menu'].add_command(label=port, command=tk._setit(porta, port))
    
-
-
 
 def enumerate_serial_ports():
     """ Uses the Win32 registry to return a iterator of serial 
@@ -74,7 +103,7 @@ if __name__ == '__main__':
 
     #FRAME DX (create 6 subframe)
     start, inc = 0.02,0.16
-    frame1 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 1,mexMenos = 2)
+    frame1 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'1',mexMenos = b'2')
     start += inc
     frame2 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 3,mexMenos = 4)
     start += inc
@@ -88,10 +117,10 @@ if __name__ == '__main__':
 
     buttons = [frame1,frame2,frame3,rot_polso,polso,presa]
 
-    Thread(name='message_sender',target=commandButtonsHandel,args = [buttons]).start()
 
+    arduino = utils.SerialConnection(porta,baud_rate)
+    Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
 
-    serialConn = utils.SerialConnection(porta,baud_rate)
     list_serial_port = enumerate_serial_ports()
     print(list_serial_port)
 

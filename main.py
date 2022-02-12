@@ -8,29 +8,24 @@ import serial.tools.list_ports as p
 
 
 def commandButtonsHandel(buttons,arduino):
-    j = 0
+
     while True:
         try:    
             if  arduino.arduino is not None:
                 for button in buttons:
                     if button.message is not None:
-                        if j == 0:
-                            print('START')
-                            j+=1
                         messaggio = button.message
                         if messaggio != b'0':
                             print(f'message_sent: {messaggio}')
                             arduino.arduino.write(messaggio)
-                            risposta = arduino.arduino.readline().decode('ascii')
                             button.message = None
-                            print(f'risposta: {risposta}')
                             break
                         if messaggio == b'0':
                             arduino.arduino.write(b'0')
-                            risposta = arduino.arduino.readline().decode('ascii')
+                            button.message = None
                             print('messaggio inviato')
-                            j=0
-                            button.message = None   
+                            break
+                               
                         
         except Exception as e:
             print(e)
@@ -106,15 +101,15 @@ if __name__ == '__main__':
     start, inc = 0.02,0.16
     frame1 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'1',mexMenos = b'2')
     start += inc
-    frame2 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 3,mexMenos = 4)
+    frame2 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'3',mexMenos = b'4')
     start += inc
-    frame3 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 5,mexMenos = 6)
+    frame3 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'5',mexMenos = b'6')
     start += inc
-    rot_polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 7,mexMenos = 8)
+    rot_polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'7',mexMenos = b'8')
     start += inc
-    polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 9,mexMenos = 10)
+    polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'9',mexMenos = b'10')
     start += inc
-    presa = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = 11,mexMenos = 12)
+    presa = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'11',mexMenos = b'12')
 
     buttons = [frame1,frame2,frame3,rot_polso,polso,presa]
 

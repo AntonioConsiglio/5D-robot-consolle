@@ -7,6 +7,17 @@ from threading import Thread
 import serial.tools.list_ports as p
 
 
+def startMode(**kwargs):
+    global consolle_mode
+    mode = consolle_mode.get()
+    if mode == 'manual':
+        Thread(name='message_sender',target=commandButtonsHandel,args = [kwargs['control_panel'],kwargs['comunication_class']]).start()
+    # if mode == 'forward':
+    #     Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
+    # if mode == 'inverse':
+    #     Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
+
+
 def commandButtonsHandel(buttons,arduino):
 
     while True:
@@ -30,9 +41,7 @@ def commandButtonsHandel(buttons,arduino):
         except Exception as e:
             print(e)
             pass
-            #break
-                    
-
+            #break            
 def setConnection(button):
     global porta, baud_rate
     if porta is not None and baud_rate is not None:
@@ -71,11 +80,13 @@ if __name__ == '__main__':
     root.resizable(False,False)
 
     # gloval variabile
-    global porta, baud_rate,list_serial_port
+    global porta, baud_rate,list_serial_port,consolle_mode
     porta= tk.StringVar()
     porta.set(None)
     baud_rate=tk.StringVar()
     baud_rate.set(None)
+    consolle_mode = tk.StringVar()
+    consolle_mode.set('manual')
 
     ## MAIN FRAME OF CONSOLLE == 3
 
@@ -98,28 +109,31 @@ if __name__ == '__main__':
 
     #FRAME DX (create 6 subframe)
     start, inc = 0.02,0.16
-    frame1 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'1',mexMenos = b'2')
+    handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2')
     start += inc
-    frame2 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'3',mexMenos = b'4')
+    wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4')
     start += inc
-    frame3 = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'5',mexMenos = b'6')
+    wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6')
     start += inc
-    rot_polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'7',mexMenos = b'8')
+    elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8')
     start += inc
-    polso = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'9',mexMenos = b'10')
+    shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10')
     start += inc
-    presa = utils.CommandButton(frameDX,text='TWIST',rely=start,mexPlus = b'11',mexMenos = b'12')
+    shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12')
 
-    buttons = [frame1,frame2,frame3,rot_polso,polso,presa]
-
-
+    ## manual panel
+    buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]
+    
+    # connection class
     arduino = utils.SerialConnection(porta,baud_rate)
-    Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
+
+    startMode(control_panel = buttons,comunication_class=arduino)
+
+
+    
+    
 
     list_serial_port = enumerate_serial_ports()
-    print(list_serial_port)
-
-
     utils.createSerialInterface(frameSX,porta,list_serial_port,baud_rate,setConnection,updatePortAvailable)
 
 

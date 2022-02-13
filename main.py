@@ -131,10 +131,11 @@ if __name__ == '__main__':
 
 
     
-    
 
     list_serial_port = enumerate_serial_ports()
     utils.createSerialInterface(frameSX,porta,list_serial_port,baud_rate,setConnection,updatePortAvailable)
+
+    
 
 
     

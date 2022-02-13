@@ -105,3 +105,5 @@ def createSerialInterface(frameSX,porta,list_seria_port,baud_rate,setConnection,
     connectionButton.place(relx=0.8,rely=0.50,relwidth=0.3,anchor='n')
     comRefreshButton.place(relx=0.8,rely=0.05,anchor='n')
     connectionFrame.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
+
+    

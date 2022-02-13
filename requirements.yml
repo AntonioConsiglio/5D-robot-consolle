@@ -20,9 +20,13 @@ dependencies:
   - wincertstore=0.2=py39haa95532_2
   - pip:
     - future==0.18.2
+    - ikpy==3.2.2
     - iso8601==1.0.2
+    - mpmath==1.2.1
     - numpy==1.22.1
     - pyserial==3.5
     - pyyaml==6.0
+    - scipy==1.8.0
     - serial==0.0.97
+    - sympy==1.9
 

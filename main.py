@@ -56,8 +56,7 @@ def updatePortAvailable(daUpdate,frameUpdate):
    
 
 def enumerate_serial_ports():
-    """ Uses the Win32 registry to return a iterator of serial 
-        (COM) ports existing on this computer.
+    """  return a iterator of serial (COM) ports existing on this computer.
     """
     port = p.comports()
     ports = [i.device for i in port]

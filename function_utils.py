@@ -3,10 +3,8 @@ This script is made by Antonio Consiglio.
 version == 1.0
 date: 2022-01-30
 
-Here there are the useful function to run the ROBOT ARM 5D. This script could be improved but the name of the funcion will remain the same as the start
+Here there are the useful function to run the ROBOT ARM 5D.
 '''
-
-from socket import timeout
 import serial
 import numpy as np
 import tkinter as tk

@@ -1,6 +1,7 @@
 #include <Servo.h>
 #include <SoftwareSerial.h>
 
+
 Servo servo_b;
 Servo servo_1;
 Servo servo_2;
@@ -52,7 +53,6 @@ void setup() {
   servo_p3.write(servop3Pos2);
 
 }
-
 
 void runSteps() {
   while (dataIn != 14) {
@@ -169,7 +169,6 @@ void runSteps() {
   } // chiude il ciclo while(dataIn != 14)
 }// chiude il void runSteps()
 
-
 void loop() {
 
   if (Serial.available() > 0); {
@@ -238,6 +237,9 @@ void loop() {
       m = 16;
     }
 
+    if (dataIn == 17) {
+      m = 17;
+    }
     // move servomotors
 
     // motore PRESA
@@ -378,6 +380,10 @@ void loop() {
       memset(servop2Pos3, 0, sizeof(servop2Pos3));
       memset(servop3Pos3, 0, sizeof(servop3Pos3));
       index = 0;
+    }
+
+    if (m == 17) {
+      inversekinematics();
     }
   }
 }

@@ -109,17 +109,17 @@ if __name__ == '__main__':
 
     #FRAME DX (create 6 subframe)
     start, inc = 0.02,0.16
-    handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2')
+    handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2',number=1)
     start += inc
-    wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4')
+    wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4',number=2)
     start += inc
-    wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6')
+    wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6',number=3)
     start += inc
-    elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8')
+    elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8',number=4)
     start += inc
-    shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10')
+    shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10',number=5)
     start += inc
-    shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12')
+    shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
 
     ## manual panel
     buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]

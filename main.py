@@ -5,6 +5,8 @@ import function_utils as utils
 from PIL import Image,ImageTk
 from threading import Thread
 import serial.tools.list_ports as p
+import sys
+import os
 
 
 def startMode(**kwargs):
@@ -74,76 +76,90 @@ def enumerate_serial_ports():
 
 
 if __name__ == '__main__':
-    root = tk.Tk()
-    root.title('CONSOLLE')
-    root.geometry("640x800")
-    root.resizable(False,False)
+    try:
+        root = tk.Tk()
+        root.title('CONSOLLE')
+        root.geometry("1300x800")
+        root.resizable(False,False)
 
-    # gloval variabile
-    global porta, baud_rate,list_serial_port,consolle_mode
-    porta= tk.StringVar()
-    porta.set(None)
-    baud_rate=tk.StringVar()
-    baud_rate.set(None)
-    consolle_mode = tk.StringVar()
-    consolle_mode.set('manual')
+        # gloval variabile
+        global porta, baud_rate,list_serial_port,consolle_mode
+        porta= tk.StringVar()
+        porta.set(None)
+        baud_rate=tk.StringVar()
+        baud_rate.set(None)
+        consolle_mode = tk.StringVar()
+        consolle_mode.set('manual')
 
-    ## MAIN FRAME OF CONSOLLE == 3
+        ## MAIN FRAME OF CONSOLLE == 3
 
-    frameSX = tk.Frame(root,bg = 'black')
-    frameSX.place(relx= 0.25,rely=0,anchor='n',relwidth=0.5,relheight=0.67)
+        frameTV = tk.Frame(root,bg = 'grey')
+        frameTV.place(relx= 0.25,rely=0,anchor='n',relwidth=0.508,relheight=0.67)
 
-    frameDX = tk.LabelFrame(root,bg = 'white',labelanchor='n',text='MANUAL COMMAND',font='Helvetic 10 bold')
-    frameDX.place(relx= 0.75,rely=0,anchor='n',relwidth=0.5,relheight=0.67)
+        frameManual = tk.Frame(root,bg = 'black')
+        frameManual.place(relx= 0.75,rely=0,anchor='n',relwidth=0.492,relheight=0.67)
 
-    frameDown = tk.LabelFrame(root,bg = 'yellow')
-    frameDown.place(relx= 0.5,rely=0.67,anchor='n',relwidth=1,relheight=0.33)
+        frameDown = tk.LabelFrame(root,bg = 'yellow')
+        frameDown.place(relx= 0.5,rely=0.67,anchor='n',relwidth=1,relheight=0.33)
 
-    ## FRAME SX
+        ## frameManual subframe
 
-    robotCanva = tk.Canvas(frameSX)
-    imageTK = ImageTk.PhotoImage(Image.open(r'images\\robot.png'))
-    robotCanva.create_image(0,5,image = imageTK,anchor='nw')
-    robotCanva.image = imageTK
-    robotCanva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)
+        frameSX = tk.Frame(frameManual,bg = 'black')
+        frameSX.place(relx= 0.25,rely=0,anchor='n',relwidth=0.5,relheight=1)
 
-    #FRAME DX (create 6 subframe)
-    start, inc = 0.02,0.16
-    handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2',number=1)
-    start += inc
-    wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4',number=2)
-    start += inc
-    wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6',number=3)
-    start += inc
-    elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8',number=4)
-    start += inc
-    shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10',number=5)
-    start += inc
-    shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
+        frameDX = tk.LabelFrame(frameManual,bg = 'white',labelanchor='n',text='MANUAL COMMAND',font='Helvetic 10 bold')
+        frameDX.place(relx= 0.75,rely=0,anchor='n',relwidth=0.5,relheight=1)
 
-    ## manual panel
-    buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]
+        ## frameTV subframe
+        frame_cam = tk.Frame(frameTV,bg='black',relief='sunken')
+        frame_cam.place(relx=0.504,rely=0.05,width=646,height=486,anchor='n')
+        
+        canvas_cam = utils.CanvasCAM(frame_cam,relx=0.5,rely=0,anchor='n')
+        camera_manager = utils.VideoCapture(canvas_cam,camera_number=2) 
+
+        ## FRAME SX
+
+        robotCanva = tk.Canvas(frameSX)
+        imageTK = ImageTk.PhotoImage(Image.open(r'images\\robot.png'))
+        robotCanva.create_image(0,5,image = imageTK,anchor='nw')
+        robotCanva.image = imageTK
+        robotCanva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)
+
+        #FRAME DX (create 6 subframe)
+        start, inc = 0.02,0.16
+        handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2',number=1)
+        start += inc
+        wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4',number=2)
+        start += inc
+        wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6',number=3)
+        start += inc
+        elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8',number=4)
+        start += inc
+        shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10',number=5)
+        start += inc
+        shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
+
+        ## manual panel
+        buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]
+        
+        # connection class
+        arduino = utils.SerialConnection(porta,baud_rate)
+
+        startMode(control_panel = buttons,comunication_class=arduino)
+
+
+        
+
+        list_serial_port = enumerate_serial_ports()
+        utils.createSerialInterface(frameSX,porta,list_serial_port,baud_rate,setConnection,updatePortAvailable)
+        
+
+
+
+        root.protocol("WM_DELETE_WINDOW",lambda: sys.exit())
+        root.mainloop()
+    except SystemExit:
+        camera_manager.state=False
+        os.abort()
     
-    # connection class
-    arduino = utils.SerialConnection(porta,baud_rate)
-
-    startMode(control_panel = buttons,comunication_class=arduino)
-
-
-    
-
-    list_serial_port = enumerate_serial_ports()
-    utils.createSerialInterface(frameSX,porta,list_serial_port,baud_rate,setConnection,updatePortAvailable)
-
-    
-
-
-    
-
-
-
-
-
-
-    root.mainloop()
 

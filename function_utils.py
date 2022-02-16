@@ -37,9 +37,9 @@ class CommandButton():
     def __init__(self,root,**kwargs):
         self.motoNumber = kwargs['number']
         self.frame = self.__create_button_frame(root,kwargs)
-        self.menos = self.__buttonCreator(tipo ='menos',relx=0.25)
-        self.plus = self.__buttonCreator(tipo = 'plus',relx=0.75)
-        self.motorLabel = self.__labelCreator(relx = 0.5,rely=0.15,relwidth=0.15,relheight=0.7,anchor='n')
+        self.menos = self.__button_creator(tipo ='menos',relx=0.25)
+        self.plus = self.__button_creator(tipo = 'plus',relx=0.75)
+        self.motorLabel = self.__label_creator(relx = 0.5,rely=0.15,relwidth=0.15,relheight=0.7,anchor='n')
         self.name = kwargs['text']
         self.ButtonPlusPress = False
         self.ButtonMenosPress = False
@@ -54,28 +54,28 @@ class CommandButton():
         frame.place(rely = kwargs['rely'],relx = 0.5,relwidth=0.9,relheight=0.16,anchor='n')
         return frame
 
-    def __buttonCreator(self,**kwargs):
+    def __button_creator(self,**kwargs):
         img = Image.open(f'images\\{kwargs["tipo"]}.png')
         img = ImageTk.PhotoImage(img)
-        button = tk.Button(self.frame,image=img,command = self.__donothing,borderwidth=0,cursor='hand1')
+        button = tk.Button(self.frame,image=img,command = self.__end_command,borderwidth=0,cursor='hand1')
         button.image=img
         button.place(relx=kwargs['relx'],rely=-0.02,anchor='n')
-        button.bind('<Button-1>',lambda e: Thread(name = 'Button Pressed',target=self.__dosomething, args=[e,kwargs["tipo"]]).start())
+        button.bind('<Button-1>',lambda e: Thread(name = 'Button Pressed',target=self.__continue_command, args=[e,kwargs["tipo"]]).start())
         return button
     
-    def __labelCreator(self,**kwargs):
+    def __label_creator(self,**kwargs):
         label = tk.Label(self.frame,bg='black',fg='white',text = str(self.motoNumber),font='Helvetic 15 bold',borderwidth=5)
         label.place(kwargs)
         return label
 
 
-    def __donothing(self):
+    def __end_command(self):
         self.message = b'0'
         self.ButtonMenosPress = False
         self.ButtonPlusPress = False
         print('END')
 
-    def __dosomething(self,event,button):
+    def __continue_command(self,event,button):
         if button == 'menos':
             self.ButtonMenosPress = True
             self.message = self.messageMenos
@@ -88,7 +88,7 @@ class CommandButton():
         # while self.ButtonPremuto:
         #     print(self.name)
 
-class CanvasCAM(tk.Canvas):
+class CanvasCam(tk.Canvas):
 
     def __init__(self,master,**kwargs):
         tk.Canvas.__init__(self,master,width=640,height=480,bg='black')
@@ -124,26 +124,26 @@ class VideoCapture():
                 pass
             time.sleep(0.005)
 
-def createSerialInterface(frameSX,porta,list_seria_port,baud_rate,setConnection,updatePortAvailable):
+def create_serial_interface(frameSX,porta,list_seria_port,baud_rate,set_connection,update_port_available):
 
-    baudList = ["9600","38400"]
+    baud_list = ["9600","38400"]
     if len(list_seria_port) == 0:
         list_seria_port = [None]
-    connectionFrame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
-    setPorta = tk.OptionMenu(connectionFrame,porta,*list_seria_port)
-    setBaudrate = tk.OptionMenu(connectionFrame,baud_rate,*baudList)
-    connectionButton = tk.Button(connectionFrame,text='CONNECT',command=lambda: setConnection(connectionButton),bg='green',font='Helvetic 10 bold',cursor='hand1')
-    comRefreshButton = tk.Button(connectionFrame,text='refresh port',command=lambda: updatePortAvailable(setPorta,connectionFrame),
+    connection_frame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
+    set_porta = tk.OptionMenu(connection_frame,porta,*list_seria_port)
+    set_baud_rate = tk.OptionMenu(connection_frame,baud_rate,*baud_list)
+    connection_button = tk.Button(connection_frame,text='CONNECT',command=lambda: set_connection(connection_button),bg='green',font='Helvetic 10 bold',cursor='hand1')
+    refresh_button = tk.Button(connection_frame,text='refresh port',command=lambda: update_port_available(set_porta),
                                 bg='lightblue',font='Helvetic 8 bold',cursor='hand1')
-    label1 = tk.Label(connectionFrame,text='SERIAL PORT',bg = 'black',fg='white',borderwidth=0)
-    label2 = tk.Label(connectionFrame,text='BAUD RATE',bg = 'black',fg='white',borderwidth=0)
-    label1.place(relx=0.2,rely=0.05,anchor='n')
-    label2.place(relx=0.5,rely=0.05,anchor='n')
-    setPorta.place(relx=0.2,rely=0.35,anchor='n')
-    setBaudrate.place(relx=0.5,rely=0.35,anchor='n')
-    connectionButton.place(relx=0.8,rely=0.50,relwidth=0.3,anchor='n')
-    comRefreshButton.place(relx=0.8,rely=0.05,anchor='n')
-    connectionFrame.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
+    serial_port_label = tk.Label(connection_frame,text='SERIAL PORT',bg = 'black',fg='white',borderwidth=0)
+    baud_rate_label = tk.Label(connection_frame,text='BAUD RATE',bg = 'black',fg='white',borderwidth=0)
+    serial_port_label.place(relx=0.2,rely=0.05,anchor='n')
+    baud_rate_label.place(relx=0.5,rely=0.05,anchor='n')
+    set_porta.place(relx=0.2,rely=0.35,anchor='n')
+    set_baud_rate.place(relx=0.5,rely=0.35,anchor='n')
+    connection_button.place(relx=0.8,rely=0.50,relwidth=0.3,anchor='n')
+    refresh_button.place(relx=0.8,rely=0.05,anchor='n')
+    connection_frame.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
     
 
 

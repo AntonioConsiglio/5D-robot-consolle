@@ -9,18 +9,18 @@ import sys
 import os
 
 
-def startMode(**kwargs):
+def start_mode(**kwargs):
     global consolle_mode
     mode = consolle_mode.get()
     if mode == 'manual':
-        Thread(name='message_sender',target=commandButtonsHandel,args = [kwargs['control_panel'],kwargs['comunication_class']]).start()
+        Thread(name='message_sender',target=command_buttons_handel,args = [kwargs['control_panel'],kwargs['comunication_class']]).start()
     # if mode == 'forward':
     #     Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
     # if mode == 'inverse':
     #     Thread(name='message_sender',target=commandButtonsHandel,args = [buttons,arduino]).start()
 
 
-def commandButtonsHandel(buttons,arduino):
+def command_buttons_handel(buttons,arduino):
 
     while True:
         try:    
@@ -44,7 +44,7 @@ def commandButtonsHandel(buttons,arduino):
             print(e)
             pass
             #break            
-def setConnection(button):
+def set_connection(button):
     global porta, baud_rate
     if porta is not None and baud_rate is not None:
         if arduino.arduino is None:
@@ -57,13 +57,13 @@ def setConnection(button):
             button['text'] = 'CONNECT'
             button['bg'] = 'green'
 
-def updatePortAvailable(daUpdate,frameUpdate):
+def update_port_available(to_update):
     global list_serial_port,porta
     porta.set(None)
-    daUpdate['menu'].delete(0, 'end')
+    to_update['menu'].delete(0, 'end')
     list_serial_port = enumerate_serial_ports()
     for port in list_serial_port:
-        daUpdate['menu'].add_command(label=port, command=tk._setit(porta, port))
+        to_update['menu'].add_command(label=port, command=tk._setit(porta, port))
    
 
 def enumerate_serial_ports():
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         frame_cam = tk.Frame(frameTV,bg='black',relief='sunken')
         frame_cam.place(relx=0.504,rely=0.05,width=646,height=486,anchor='n')
         
-        canvas_cam = utils.CanvasCAM(frame_cam,relx=0.5,rely=0,anchor='n')
+        canvas_cam = utils.CanvasCam(frame_cam,relx=0.5,rely=0,anchor='n')
         camera_manager = utils.VideoCapture(canvas_cam,camera_number=2) 
 
         ## FRAME SX
@@ -145,13 +145,13 @@ if __name__ == '__main__':
         # connection class
         arduino = utils.SerialConnection(porta,baud_rate)
 
-        startMode(control_panel = buttons,comunication_class=arduino)
+        start_mode(control_panel = buttons,comunication_class=arduino)
 
 
         
 
         list_serial_port = enumerate_serial_ports()
-        utils.createSerialInterface(frameSX,porta,list_serial_port,baud_rate,setConnection,updatePortAvailable)
+        utils.create_serial_interface(frameSX,porta,list_serial_port,baud_rate,set_connection,update_port_available)
         
 
 

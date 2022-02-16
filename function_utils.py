@@ -112,7 +112,7 @@ class VideoCapture():
     def _set_frames(self):
         self.frames.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.frames.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.frames.set(cv2.CAP_PROP_FPS, 25)
+        self.frames.set(cv2.CAP_PROP_FPS, 30)
 
     def _start_video(self):
         while self.state:
@@ -124,13 +124,11 @@ class VideoCapture():
                 pass
             time.sleep(0.005)
 
-
-
-
-
 def createSerialInterface(frameSX,porta,list_seria_port,baud_rate,setConnection,updatePortAvailable):
 
     baudList = ["9600","38400"]
+    if len(list_seria_port) == 0:
+        list_seria_port = [None]
     connectionFrame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
     setPorta = tk.OptionMenu(connectionFrame,porta,*list_seria_port)
     setBaudrate = tk.OptionMenu(connectionFrame,baud_rate,*baudList)

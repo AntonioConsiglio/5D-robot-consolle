@@ -15,40 +15,45 @@ my_arm_chain = Chain(name='arduino_robot',links=[
     OriginLink(),
     URDFLink(
         name="shoulderZ",
+        bounds=(0,3.14),
         origin_translation=[0,0,0],
-        origin_orientation=[-1.57,0,0],
+        origin_orientation=[0,0,0],
         rotation=[0,0,1],
     ),
     URDFLink(
         name="shoulderY",
+        bounds=(0,3.14),
         origin_translation=[0,0,100],
         origin_orientation=[1.57,0,0],
         rotation=[0,0,1],
     ),
     URDFLink(
         name="elbow",
+        bounds=(0,3.14),
         origin_translation=[0,120,0],
         origin_orientation=[0,0,0],
         rotation=[0,0,1],
     ),
     URDFLink(
         name="wristX",
+        bounds=(0,3.14),
         origin_translation=[0,80,0],
-        origin_orientation=[0,1.57,0],
+        origin_orientation=[0,1.57,1.57],
         rotation=[0,0,1]
     ),
     URDFLink(
         name="wristY",
+        bounds=(0,3.14),
         origin_translation=[0,0,30], #in metri
         origin_orientation=[-1.57,0,0],
         rotation=[0,0,1],
     ),
-    # URDFLink(
-    #     name="handTool",
-    #     origin_translation=[0,0,8],
-    #     origin_orientation=[0,0,0],
-    #     rotation=[0,0,0]
-    # ),
+    URDFLink(
+        name="handTool",
+        origin_translation=[0,-80,0],
+        origin_orientation=[0,0,0],
+        rotation=[0,0,0]
+    ),
 ])
 
 #post = my_arm_chain.forward_kinematics([0] * 6)
@@ -56,9 +61,9 @@ my_arm_chain = Chain(name='arduino_robot',links=[
 
 ax = matplotlib.pyplot.figure().add_subplot(111, projection='3d')
 
-target = my_arm_chain.inverse_kinematics([0,0,330])
+target = my_arm_chain.inverse_kinematics([0,0,410])
+print(target)
+my_arm_chain.plot(target, ax)
 
-#my_arm_chain.plot(target, ax)
-
-my_arm_chain.plot([0,1.57,0,1.57,0,0], ax)
+#my_arm_chain.plot([0,0,0,0,0,0], ax)
 matplotlib.pyplot.show()

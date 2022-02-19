@@ -133,25 +133,30 @@ if __name__ == '__main__':
         robot_canva.image = imageTK
         robot_canva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)
 
-        utils.SerialInterface(frameSX,porta,list_serial_port,baud_rate,set_connection,update_port_available)
+        serial_frame = utils.SerialInterface(frameSX,porta,list_serial_port,baud_rate,set_connection,update_port_available)
+        serial_frame.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
 
-        #FRAME DX (create 6 subframe)
+        # FRAME DX (create 6 subframe)
+        buttons = []
         start, inc = 0.02,0.16
         handTool = utils.CommandButton(frameDX,text='HAND',rely=start,mexPlus = b'1',mexMenos = b'2',number=1)
+        buttons.append(handTool)
         start += inc
         wristY = utils.CommandButton(frameDX,text='ROTATION WRIST Y',rely=start,mexPlus = b'3',mexMenos = b'4',number=2)
+        buttons.append(wristY)
         start += inc
         wristX = utils.CommandButton(frameDX,text='ROTATION WRIST X',rely=start,mexPlus = b'5',mexMenos = b'6',number=3)
+        buttons.append(wristX)
         start += inc
         elbow = utils.CommandButton(frameDX,text='ELBOW',rely=start,mexPlus = b'7',mexMenos = b'8',number=4)
+        buttons.append(elbow)
         start += inc
         shoulderY = utils.CommandButton(frameDX,text='ROTATION SHOULDER Y',rely=start,mexPlus = b'9',mexMenos = b'10',number=5)
+        buttons.append(shoulderY)
         start += inc
         shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
-
-        ## List of buttons for manual command
-        buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]
-
+        buttons.append(shoulderZ)
+    
         # Donw frame setting --> 2 subframe frameDown
 
         

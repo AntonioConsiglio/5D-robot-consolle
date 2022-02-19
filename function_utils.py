@@ -157,7 +157,7 @@ class SerialInterface(tk.LabelFrame):
         else:
             self.list_seria_port=list_seria_port
         self._create_frame_items(porta,baud_rate,set_connection,update_port_available)
-        self.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
+        
 
     def _create_frame_items(self,porta,baud_rate,set_connection,update_port_available):
         self.set_porta = tk.OptionMenu(self,porta,*self.list_seria_port)

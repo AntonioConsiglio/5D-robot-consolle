@@ -13,16 +13,22 @@ Servo servo_p3;
 
 // Inserisco le variabili
 
-int servobPos, servo1Pos, servo2Pos, servop1Pos, servop2Pos, servop3Pos; //posizione corrente
-int servobPos2, servo1Pos2, servo2Pos2, servop1Pos2, servop2Pos2, servop3Pos2; //posizione prevista
+int servobPos, servo1Pos, servo2Pos, servop1Pos, servop2Pos, servop3Pos; 
+// servobPos, servo1Pos, servo2Pos, servop1Pos, servop2Pos, servop3Pos --- corrispondenza con indici array; 
+int current_angle[6] ={}; //posizione corrente 
 int servobPos3[50], servo1Pos3[50], servo2Pos3[50], servop1Pos3[50], servop2Pos3[50], servop3Pos3[50]; //storing positions
+bool state = true;
+int angles[5] = {};
+
 
 
 int dataIn;
 int m = 0;
-int speedDelay = 30;
+int speedDelayManual = 30;
+int speedDelay = 10;
 int index = 0;
-
+int index_inverse = 0;
+bool running_kinematic = false;
 
 void setup() {
 
@@ -39,18 +45,18 @@ void setup() {
 
 
   // Posizione iniziale Robot
-  servobPos2 = 90;
-  servo_b.write(servobPos2);
-  servo1Pos2 = 170; // fine corsa indietro
-  servo_1.write(servo1Pos2);
-  servo2Pos2 = 90; // incrementando si va verso il basso
-  servo_2.write(servo2Pos2);
-  servop1Pos2 = 130; // incrementando va verso destra
-  servo_p1.write(servop1Pos2);
-  servop2Pos2 = 90; // incrementando si alza
-  servo_p2.write(servop2Pos2);
-  servop3Pos2 = 160; // incrementando si apre
-  servo_p3.write(servop3Pos2);
+  current_angle[0] = 90;
+  servo_b.write(current_angle[0]);
+  current_angle[1] = 170; // fine corsa indietro
+  servo_1.write(current_angle[1]);
+  current_angle[2] = 90; // incrementando si va verso il basso
+  servo_2.write(current_angle[2]);
+  current_angle[3] = 130; // incrementando va verso destra
+  servo_p1.write(current_angle[3]);
+  current_angle[4] = 90; // incrementando si alza
+  servo_p2.write(current_angle[4]);
+  current_angle[5] = 160; // incrementando si apre
+  servo_p3.write(current_angle[5]);
 
 }
 
@@ -76,13 +82,13 @@ void runSteps() {
       if (servobPos3[i] > servobPos3[i + 1]) {
         for (int j = servobPos3[i]; j >= servobPos3[i + 1]; j--) {
           servo_b.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servobPos3[i] < servobPos3[i + 1]) {
         for (int j = servobPos3[i]; j <= servobPos3[i + 1]; j++) {
           servo_b.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
 
@@ -92,13 +98,13 @@ void runSteps() {
       if (servo1Pos3[i] > servo1Pos3[i + 1]) {
         for (int j = servo1Pos3[i]; j >= servo1Pos3[i + 1]; j--) {
           servo_1.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servo1Pos3[i] < servo1Pos3[i + 1]) {
         for (int j = servo1Pos3[i]; j <= servo1Pos3[i + 1]; j++) {
           servo_1.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
 
@@ -108,13 +114,13 @@ void runSteps() {
       if (servo2Pos3[i] > servo2Pos3[i + 1]) {
         for (int j = servo2Pos3[i]; j >= servo2Pos3[i + 1]; j--) {
           servo_2.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servo2Pos3[i] < servo2Pos3[i + 1]) {
         for (int j = servo2Pos3[i]; j <= servo2Pos3[i + 1]; j++) {
           servo_2.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
 
@@ -124,13 +130,13 @@ void runSteps() {
       if (servop1Pos3[i] > servop1Pos3[i + 1]) {
         for (int j = servop1Pos3[i]; j >= servop1Pos3[i + 1]; j--) {
           servo_p1.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servop1Pos3[i] < servop1Pos3[i + 1]) {
         for (int j = servop1Pos3[i]; j <= servop1Pos3[i + 1]; j++) {
           servo_p1.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
 
@@ -140,13 +146,13 @@ void runSteps() {
       if (servop2Pos3[i] > servop2Pos3[i + 1]) {
         for (int j = servop2Pos3[i]; j >= servop2Pos3[i + 1]; j--) {
           servo_p2.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servop2Pos3[i] < servop2Pos3[i + 1]) {
         for (int j = servop2Pos3[i]; j <= servop2Pos3[i + 1]; j++) {
           servo_p2.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
 
@@ -156,13 +162,13 @@ void runSteps() {
       if (servop3Pos3[i] > servop3Pos3[i + 1]) {
         for (int j = servop3Pos3[i]; j >= servop3Pos3[i + 1]; j--) {
           servo_p3.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
       if (servop3Pos3[i] < servop3Pos3[i + 1]) {
         for (int j = servop3Pos3[i]; j <= servop3Pos3[i + 1]; j++) {
           servo_p3.write(j);
-          delay(speedDelay);
+          delay(speedDelayManual);
         }
       }
     } // chiude il ciclo for(int i)
@@ -248,17 +254,17 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p3.write(servop3Pos2);
-      servop3Pos2--;
-      delay(speedDelay);
+      servo_p3.write(current_angle[5]);
+      current_angle[5]--;
+      delay(speedDelayManual);
     }
     while (m == 2) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p3.write(servop3Pos2);
-      servop3Pos2++;
-      delay(speedDelay);
+      servo_p3.write(current_angle[5]);
+      current_angle[5]++;
+      delay(speedDelayManual);
     }
 
     // motore polso su giu
@@ -266,18 +272,18 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p2.write(servop2Pos2);
-      servop2Pos2--;
-      delay(speedDelay);
+      servo_p2.write(current_angle[4]);
+      current_angle[4]--;
+      delay(speedDelayManual);
     }
 
     while (m == 4) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p2.write(servop2Pos2);
-      servop2Pos2++;
-      delay(speedDelay);
+      servo_p2.write(current_angle[4]);
+      current_angle[4]++;
+      delay(speedDelayManual);
     }
 
     // Rollio polso
@@ -285,17 +291,17 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p1.write(servop1Pos2);
-      servop1Pos2--;
-      delay(speedDelay);
+      servo_p1.write(current_angle[3]);
+      current_angle[3]--;
+      delay(speedDelayManual);
     }
     while (m == 6) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_p1.write(servop1Pos2);
-      servop1Pos2++;
-      delay(speedDelay);
+      servo_p1.write(current_angle[3]);
+      current_angle[3]++;
+      delay(speedDelayManual);
     }
 
     // Movimento gomito
@@ -303,18 +309,18 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_2.write(servo2Pos2);
-      servo2Pos2--;
-      delay(speedDelay);
+      servo_2.write(current_angle[2]);
+      current_angle[2]--;
+      delay(speedDelayManual);
     }
 
     while (m == 8) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_2.write(servo2Pos2);
-      servo2Pos2++;
-      delay(speedDelay);
+      servo_2.write(current_angle[2]);
+      current_angle[2]++;
+      delay(speedDelayManual);
     }
 
     // Movimento SPALLA
@@ -322,18 +328,18 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_1.write(servo1Pos2);
-      servo1Pos2--;
-      delay(speedDelay);
+      servo_1.write(current_angle[1]);
+      current_angle[1]--;
+      delay(speedDelayManual);
     }
 
     while (m == 10) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_1.write(servo1Pos2);
-      servo1Pos2++;
-      delay(speedDelay);
+      servo_1.write(current_angle[1]);
+      current_angle[1]++;
+      delay(speedDelayManual);
     }
 
     // Rotazione SPALLA
@@ -341,28 +347,28 @@ void loop() {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_b.write(servobPos2);
-      servobPos2--;
-      delay(speedDelay);
+      servo_b.write(current_angle[0]);
+      current_angle[0]--;
+      delay(speedDelayManual);
     }
 
     while (m == 12) {
       if (Serial.available() > 0) {
         m = Serial.readString().toInt();
       }
-      servo_b.write(servobPos2);
-      servobPos2++;
-      delay(speedDelay);
+      servo_b.write(current_angle[0]);
+      current_angle[0]++;
+      delay(speedDelayManual);
     }
 
     // last
     if (m == 13) {
-      servobPos3[index] = servobPos2;
-      servo1Pos3[index] = servo1Pos2;
-      servo2Pos3[index] = servo2Pos2;
-      servop1Pos3[index] = servop1Pos2;
-      servop2Pos3[index] = servop2Pos2;
-      servop3Pos3[index] = servop3Pos2;
+      servobPos3[index] = current_angle[0];
+      servo1Pos3[index] = current_angle[1];
+      servo2Pos3[index] = current_angle[2];
+      servop1Pos3[index] = current_angle[3];
+      servop2Pos3[index] = current_angle[4];
+      servop3Pos3[index] = current_angle[5];
       index++;
       m = 0;
     }
@@ -383,7 +389,15 @@ void loop() {
     }
 
     if (m == 17) {
-      inversekinematics();
+      Serial.println("s");
+      run_kinematics_motion();
+      m = 0;
+      state = true;
+//      Serial.println("Angoli inviati: ");
+//      for (int i=0;i<5;i++)
+//      {
+//        Serial.print(" "+String(angles[i]));
+//      }
     }
   }
 }

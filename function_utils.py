@@ -31,7 +31,6 @@ class SerialConnection():
         print('Disconnesso !')
 
     
-
 class CommandButton():
 
     def __init__(self,root,**kwargs):
@@ -99,6 +98,7 @@ class CanvasCam(tk.Canvas):
         self.create_image(1,1,image=img,anchor='nw')
         self.image = img
 
+
 class VideoCapture():
     def __init__(self,canva_to_update,camera_number = 1):
         self.camera = camera_number
@@ -112,7 +112,7 @@ class VideoCapture():
     def _set_frames(self):
         self.frames.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
         self.frames.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-        self.frames.set(cv2.CAP_PROP_FPS, 30)
+        self.frames.set(cv2.CAP_PROP_FPS, 60)
 
     def _start_video(self):
         while self.state:
@@ -122,28 +122,56 @@ class VideoCapture():
                 self.canva.update_image(cap)
             else:
                 pass
-            time.sleep(0.005)
-
-def create_serial_interface(frameSX,porta,list_seria_port,baud_rate,set_connection,update_port_available):
-
-    baud_list = ["9600","38400"]
-    if len(list_seria_port) == 0:
-        list_seria_port = [None]
-    connection_frame = tk.LabelFrame(frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
-    set_porta = tk.OptionMenu(connection_frame,porta,*list_seria_port)
-    set_baud_rate = tk.OptionMenu(connection_frame,baud_rate,*baud_list)
-    connection_button = tk.Button(connection_frame,text='CONNECT',command=lambda: set_connection(connection_button),bg='green',font='Helvetic 10 bold',cursor='hand1')
-    refresh_button = tk.Button(connection_frame,text='refresh port',command=lambda: update_port_available(set_porta),
-                                bg='lightblue',font='Helvetic 8 bold',cursor='hand1')
-    serial_port_label = tk.Label(connection_frame,text='SERIAL PORT',bg = 'black',fg='white',borderwidth=0)
-    baud_rate_label = tk.Label(connection_frame,text='BAUD RATE',bg = 'black',fg='white',borderwidth=0)
-    serial_port_label.place(relx=0.2,rely=0.05,anchor='n')
-    baud_rate_label.place(relx=0.5,rely=0.05,anchor='n')
-    set_porta.place(relx=0.2,rely=0.35,anchor='n')
-    set_baud_rate.place(relx=0.5,rely=0.35,anchor='n')
-    connection_button.place(relx=0.8,rely=0.50,relwidth=0.3,anchor='n')
-    refresh_button.place(relx=0.8,rely=0.05,anchor='n')
-    connection_frame.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
-    
+            #time.sleep(0.005)
 
 
+class FrameDown(tk.Frame):
+
+    def __init__(self,master,**kwargs):
+        tk.Frame.__init__(self,master,kwargs)
+        self.subframe_sx = tk.LabelFrame(self,text='da_capire_cosa_devo_farci',labelanchor='n',bg='red')
+        self.subframe_dx = tk.Frame(self,bg='green')
+        self._place_subframe()
+        self._split_subframe_dx()
+
+    def _place_subframe(self):
+        self.subframe_dx.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
+        self.subframe_sx.place(relx=0.25,rely=0,relwidth=0.5,relheight=1,anchor='n')
+
+    def _split_subframe_dx(self):
+        self.inverse_frame = tk.LabelFrame(self.subframe_dx,text='INVERSE KINEMATICS',
+                                            labelanchor='n',bg='lightgray',font='Helvetic 10 bold')
+        self.forward_frame = tk.LabelFrame(self.subframe_dx,text='FORWARD KINEMATICS',
+                                            labelanchor='n',bg='lightgray',font='Helvetic 10 bold')
+        self.inverse_frame.place(relx=0.25,rely=0,relwidth=0.5,relheight=1,anchor='n')
+        self.forward_frame.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
+
+
+class SerialInterface(tk.LabelFrame):
+
+    def __init__(self,frameSX,porta,list_seria_port,baud_rate,set_connection,update_port_available):
+        tk.LabelFrame.__init__(self,frameSX,labelanchor='n',text='SET SERIAL CONNECTION',bg='black',fg='white')
+        self.baud_list = ["9600","38400"]
+        if len(list_seria_port) == 0:
+            self.list_seria_port = [None]
+        else:
+            self.list_seria_port=list_seria_port
+        self._create_frame_items(porta,baud_rate,set_connection,update_port_available)
+        self.place(relx=0.5,rely=0.83,relheight=0.17,relwidth=1,anchor='n')
+
+    def _create_frame_items(self,porta,baud_rate,set_connection,update_port_available):
+        self.set_porta = tk.OptionMenu(self,porta,*self.list_seria_port)
+        self.set_baud_rate = tk.OptionMenu(self,baud_rate,*self.baud_list)
+        self.connection_button = tk.Button(self,text='CONNECT',command=lambda: set_connection(self.connection_button),
+                                        bg='green',font='Helvetic 10 bold',cursor='hand1')
+        self.refresh_button = tk.Button(self,text='refresh port',command=lambda: update_port_available(self.set_porta),
+                                    bg='lightblue',font='Helvetic 8 bold',cursor='hand1')
+        self.serial_port_label = tk.Label(self,text='SERIAL PORT',bg = 'black',fg='white',borderwidth=0)
+        self.baud_rate_label = tk.Label(self,text='BAUD RATE',bg = 'black',fg='white',borderwidth=0)
+        self.serial_port_label.place(relx=0.2,rely=0.05,anchor='n')
+        self.baud_rate_label.place(relx=0.5,rely=0.05,anchor='n')
+        self.set_porta.place(relx=0.2,rely=0.35,anchor='n')
+        self.set_baud_rate.place(relx=0.5,rely=0.35,anchor='n')
+        self.connection_button.place(relx=0.8,rely=0.50,relwidth=0.3,anchor='n')
+        self.refresh_button.place(relx=0.8,rely=0.05,anchor='n')
+        

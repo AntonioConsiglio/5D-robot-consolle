@@ -7,6 +7,12 @@ from threading import Thread
 import serial.tools.list_ports as p
 import sys
 import os
+import matplotlib.pyplot as plt
+import robot
+
+my_robot = robot.Robot('arduino_robot')
+
+plt.show()
 
 
 def start_mode(**kwargs):
@@ -57,6 +63,7 @@ def set_connection(button):
             button['text'] = 'CONNECT'
             button['bg'] = 'green'
 
+
 def update_port_available(to_update):
     global list_serial_port,porta
     porta.set(None)
@@ -72,7 +79,6 @@ def enumerate_serial_ports():
     port = p.comports()
     ports = [i.device for i in port]
     return ports
-
 
 
 if __name__ == '__main__':
@@ -91,6 +97,9 @@ if __name__ == '__main__':
         consolle_mode = tk.StringVar()
         consolle_mode.set('manual')
 
+        # Enumerate serial ports
+        list_serial_port = enumerate_serial_ports()
+
         ## MAIN FRAME OF CONSOLLE == 3
 
         frameTV = tk.Frame(root,bg = 'grey')
@@ -99,9 +108,8 @@ if __name__ == '__main__':
         frameManual = tk.Frame(root,bg = 'black')
         frameManual.place(relx= 0.75,rely=0,anchor='n',relwidth=0.492,relheight=0.67)
 
-        frameDown = tk.LabelFrame(root,bg = 'yellow')
-        frameDown.place(relx= 0.5,rely=0.67,anchor='n',relwidth=1,relheight=0.33)
-
+        frame_down =  utils.FrameDown(root,bg='yellow')
+        frame_down.place(relx= 0.5,rely=0.67,anchor='n',relwidth=1,relheight=0.33)
         ## frameManual subframe
 
         frameSX = tk.Frame(frameManual,bg = 'black')
@@ -119,11 +127,13 @@ if __name__ == '__main__':
 
         ## FRAME SX
 
-        robotCanva = tk.Canvas(frameSX)
+        robot_canva = tk.Canvas(frameSX)
         imageTK = ImageTk.PhotoImage(Image.open(r'images\\robot.png'))
-        robotCanva.create_image(0,5,image = imageTK,anchor='nw')
-        robotCanva.image = imageTK
-        robotCanva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)
+        robot_canva.create_image(0,5,image = imageTK,anchor='nw')
+        robot_canva.image = imageTK
+        robot_canva.place(relx=0.5,y=1,relwidth=0.98,relheight=0.83,anchor='n',)
+
+        utils.SerialInterface(frameSX,porta,list_serial_port,baud_rate,set_connection,update_port_available)
 
         #FRAME DX (create 6 subframe)
         start, inc = 0.02,0.16
@@ -139,19 +149,25 @@ if __name__ == '__main__':
         start += inc
         shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
 
-        ## manual panel
+        ## List of buttons for manual command
         buttons = [handTool,wristY,wristX,elbow,shoulderY,shoulderZ]
+
+        # Donw frame setting --> 2 subframe frameDown
+
         
-        # connection class
+        # Serial connection object
         arduino = utils.SerialConnection(porta,baud_rate)
 
+        # Robot object
+        my_robot = robot.Robot('arduino_robot')
+        print(my_robot.forward_kinematics([0]*7))
+
+        # Start mode
         start_mode(control_panel = buttons,comunication_class=arduino)
 
 
         
 
-        list_serial_port = enumerate_serial_ports()
-        utils.create_serial_interface(frameSX,porta,list_serial_port,baud_rate,set_connection,update_port_available)
         
 
 

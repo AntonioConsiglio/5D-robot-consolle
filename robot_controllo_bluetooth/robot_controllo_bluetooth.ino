@@ -9,7 +9,7 @@ Servo servo_p1;
 Servo servo_p2;
 Servo servo_p3;
 
-//SoftwareSerial Serial(2,3);
+SoftwareSerial Bluetooth(2,3);
 
 // Inserisco le variabili
 
@@ -38,10 +38,10 @@ void setup() {
   servo_p1.attach(5); // motore polso
   servo_p2.attach(6); // motore supporto presa
   servo_p3.attach(9); // motore presa
-  Serial.begin(9600);
-  Serial.setTimeout(100);
-  //Serial.begin(38400);
-  //delay(25);
+  Serial.begin(38400);
+  Bluetooth.begin(38400);
+  Bluetooth.setTimeout(10);
+  delay(25);
 
 
   // Posizione iniziale Robot
@@ -63,12 +63,12 @@ void setup() {
 void runSteps() {
   while (dataIn != 14) {
     for (int i = 0; i <= index - 2; i++) {
-      if (Serial.available() > 0) {
-        dataIn = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        dataIn = Bluetooth.readString().toInt();
         if (dataIn == 16) {
           while (dataIn != 15) {
-            if (Serial.available() > 0) {
-              dataIn = Serial.readString().toInt();
+            if (Bluetooth.available() > 0) {
+              dataIn = Bluetooth.readString().toInt();
               if (dataIn == 14) {
                 break;
               }
@@ -177,8 +177,8 @@ void runSteps() {
 
 void loop() {
 
-  if (Serial.available() > 0); {
-    dataIn = Serial.readString().toInt();
+  if (Bluetooth.available() > 0); {
+    dataIn = Bluetooth.readString().toInt();
     Serial.write(dataIn);
     if (dataIn == 1) {
       m = 1;
@@ -251,114 +251,150 @@ void loop() {
     // motore PRESA
     // positive direction
     while (m == 1) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p3.write(current_angle[5]);
-      current_angle[5]--;
-      delay(speedDelayManual);
+      if (current_angle[5] > 0)
+      {
+        current_angle[5]--;
+        delay(speedDelayManual);
+      }
     }
     while (m == 2) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p3.write(current_angle[5]);
-      current_angle[5]++;
-      delay(speedDelayManual);
+      if (current_angle[5] < 180)
+      {
+        current_angle[5]++;
+        delay(speedDelayManual);
+      }
     }
 
     // motore polso su giu
     while (m == 3) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p2.write(current_angle[4]);
-      current_angle[4]--;
-      delay(speedDelayManual);
+      if (current_angle[4] > 0)
+      {
+        current_angle[4]--;
+        delay(speedDelayManual);
+      }
     }
 
     while (m == 4) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p2.write(current_angle[4]);
-      current_angle[4]++;
-      delay(speedDelayManual);
+      if (current_angle[4] < 180)
+      {
+        current_angle[4]++;
+        delay(speedDelayManual);
+      }
     }
 
     // Rollio polso
     while (m == 5) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p1.write(current_angle[3]);
-      current_angle[3]--;
-      delay(speedDelayManual);
+      if (current_angle[3] > 0)
+      {
+        current_angle[3]--;
+        delay(speedDelayManual);
+      }
     }
     while (m == 6) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_p1.write(current_angle[3]);
-      current_angle[3]++;
-      delay(speedDelayManual);
+      if (current_angle[3] < 180)
+      {
+        current_angle[3]++;
+        delay(speedDelayManual);
+      }
     }
 
     // Movimento gomito
     while (m == 7) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_2.write(current_angle[2]);
-      current_angle[2]--;
-      delay(speedDelayManual);
+      if (current_angle[2] > 0)
+      {
+        current_angle[2]--;
+        delay(speedDelayManual);
+      }
     }
 
     while (m == 8) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_2.write(current_angle[2]);
-      current_angle[2]++;
-      delay(speedDelayManual);
+      if (current_angle[2] < 180)
+      {
+        current_angle[2]++;
+        delay(speedDelayManual);
+      }
     }
 
     // Movimento SPALLA
     while (m == 9) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_1.write(current_angle[1]);
-      current_angle[1]--;
-      delay(speedDelayManual);
+      if (current_angle[1] > 0)
+      {
+        current_angle[1]--;
+        delay(speedDelayManual);
+      }
     }
 
     while (m == 10) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_1.write(current_angle[1]);
-      current_angle[1]++;
-      delay(speedDelayManual);
+      if (current_angle[1] < 180)
+      {
+        current_angle[1]++;
+        delay(speedDelayManual);
+      }
     }
 
     // Rotazione SPALLA
     while (m == 11) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_b.write(current_angle[0]);
-      current_angle[0]--;
-      delay(speedDelayManual);
+      if (current_angle[0] > 0)
+      {
+        current_angle[0]--;
+        delay(speedDelayManual);
+      }
     }
 
     while (m == 12) {
-      if (Serial.available() > 0) {
-        m = Serial.readString().toInt();
+      if (Bluetooth.available() > 0) {
+        m = Bluetooth.readString().toInt();
       }
       servo_b.write(current_angle[0]);
-      current_angle[0]++;
-      delay(speedDelayManual);
+      if (current_angle[0] < 180)
+      {
+        current_angle[0]++;
+        delay(speedDelayManual);
+      }
     }
 
     // last
@@ -389,7 +425,7 @@ void loop() {
     }
 
     if (m == 17) {
-      Serial.println("s");
+      Bluetooth.println("s");
       run_kinematics_motion();
       m = 0;
       state = true;

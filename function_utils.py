@@ -23,7 +23,7 @@ class SerialConnection():
     def connection(self):
         porta = self.porta.get()
         baudrate = int(self.baud_rate.get())
-        self.arduino = serial.Serial(port=porta,baudrate=baudrate,timeout=0.1)
+        self.arduino = serial.Serial(port=porta,baudrate=baudrate,timeout=0.01)
         print('Connesso !')
 
     def disconnet(self):

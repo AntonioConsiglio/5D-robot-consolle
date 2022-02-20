@@ -49,7 +49,8 @@ def command_buttons_handel(buttons,arduino):
         except Exception as e:
             print(e)
             pass
-            #break            
+            #break   
+
 def set_connection(button):
     global porta, baud_rate
     if porta is not None and baud_rate is not None:
@@ -156,16 +157,21 @@ if __name__ == '__main__':
         start += inc
         shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
         buttons.append(shoulderZ)
-    
-        # Donw frame setting --> 2 subframe frameDown
 
-        
         # Serial connection object
         arduino = utils.SerialConnection(porta,baud_rate)
 
         # Robot object
         my_robot = robot.Robot('arduino_robot')
-        print(my_robot.forward_kinematics([0]*7))
+        # print(my_robot.forward_kinematics([0]*7))
+        
+        # Donw frame setting --> Forward kinematics option
+        frame_down.create_forward_frame(arduino,my_robot)
+
+        
+        
+
+        
 
         # Start mode
         start_mode(control_panel = buttons,comunication_class=arduino)

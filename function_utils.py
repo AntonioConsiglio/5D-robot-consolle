@@ -145,6 +145,61 @@ class FrameDown(tk.Frame):
                                             labelanchor='n',bg='lightgray',font='Helvetic 10 bold')
         self.inverse_frame.place(relx=0.25,rely=0,relwidth=0.5,relheight=1,anchor='n')
         self.forward_frame.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
+    
+    def _create_angle_variable(self):
+        self.angle1 = tk.StringVar()
+        self.angle2 = tk.StringVar()
+        self.angle3 = tk.StringVar()
+        self.angle4 = tk.StringVar()
+        self.angle5 = tk.StringVar()
+        self.angle6 = tk.StringVar()
+    
+    def _create_label_variable(self):
+        start,offset,x,x2 = 0.05,0.13,0.25,0.8
+        for i in range(6):
+            label = tk.Label(self.forward_frame,text=f'angle joint {i+1}: '.upper(),font='Helvetic 10 bold',bg='lightgray')
+            label.place(relx=x,rely=start+offset*i,anchor='n')
+            limitlabel = tk.Label(self.forward_frame,text='(0 ÷ 180)',font='Helvetic 10 bold',bg='lightgray')
+            limitlabel.place(relx=x2,rely=start+offset*i,anchor='n')
+
+    def create_forward_frame(self,arduino_obj,robot_obj):
+
+        self._create_angle_variable()
+        self._create_label_variable()
+        self.entry_angle6 = tk.Entry(self.forward_frame,textvariable=self.angle6,font='Helvetic 10 bold',justify='right')
+        self.entry_angle5 = tk.Entry(self.forward_frame,textvariable=self.angle5,font='Helvetic 10 bold',justify='right')
+        self.entry_angle4 = tk.Entry(self.forward_frame,textvariable=self.angle4,font='Helvetic 10 bold',justify='right')
+        self.entry_angle3 = tk.Entry(self.forward_frame,textvariable=self.angle3,font='Helvetic 10 bold',justify='right')
+        self.entry_angle2 = tk.Entry(self.forward_frame,textvariable=self.angle2,font='Helvetic 10 bold',justify='right')
+        self.entry_angle1 = tk.Entry(self.forward_frame,textvariable=self.angle1,font='Helvetic 10 bold',justify='right')
+        start,offset,x = 0.05,0.13,0.55
+        self.entry_angle6.place(relx = x,rely=start,anchor='n',relwidth=0.2)
+        self.entry_angle5.place(relx = x,rely=start+offset,anchor='n',relwidth=0.2)
+        self.entry_angle4.place(relx = x,rely=start+offset*2,anchor='n',relwidth=0.2)
+        self.entry_angle3.place(relx = x,rely=start+offset*3,anchor='n',relwidth=0.2)
+        self.entry_angle2.place(relx = x,rely=start+offset*4,anchor='n',relwidth=0.2)
+        self.entry_angle1.place(relx = x,rely=start+offset*5,anchor='n',relwidth=0.2)
+
+        self.send_angle = tk.Button(self.forward_frame,bg = 'lightblue',text='START',font='Helvetic 13 bold',
+                                    command=lambda: self._send_angles(arduino_obj,robot_obj))
+        self.send_angle.place(relx = 0.5,rely = 0.83,anchor='n')
+
+    def _send_angles(self,arduino_obj,robot_obj):
+        angles_list = [self.angle1,self.angle2,self.angle3,self.angle4,self.angle5]
+        angles_list = [i.get().strip() for i in angles_list]
+        angles_int_list = [int(i) for i in angles_list]
+        arduino_obj.arduino.write(b'17')
+        time.sleep(0.1)
+        for i in angles_list:
+            arduino_obj.arduino.write(i.encode('UTF-8'))
+            print(i.encode('UTF-8'))
+            time.sleep(0.1)
+        angles_int_list.insert(0,0)
+        angles_int_list.append(0)
+        t_matrix = robot_obj.forward_kinematics(angles_int_list)
+        position = t_matrix[:3,3].astype(np.uint8)
+        print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
+
 
 
 class SerialInterface(tk.LabelFrame):

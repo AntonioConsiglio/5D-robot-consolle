@@ -68,3 +68,6 @@ class Robot(Chain):
             ),
         ])
         return my_arm_chain
+
+    def compute_inverse_kinematics(self,target_position):
+        return self.robot.inverse_kinematics(target_position)

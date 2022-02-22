@@ -12,6 +12,7 @@ from threading import Thread
 from PIL import Image,ImageTk
 import cv2
 import time
+import math
 
 class SerialConnection():
 
@@ -154,6 +155,11 @@ class FrameDown(tk.Frame):
         self.angle5 = tk.StringVar()
         self.angle6 = tk.StringVar()
     
+    def _create_xyz_variable(self):
+        self.x = tk.StringVar()
+        self.y = tk.StringVar()
+        self.z = tk.StringVar()
+    
     def _create_label_variable(self):
         start,offset,x,x2 = 0.05,0.13,0.25,0.8
         for i in range(6):
@@ -184,21 +190,72 @@ class FrameDown(tk.Frame):
                                     command=lambda: self._send_angles(arduino_obj,robot_obj))
         self.send_angle.place(relx = 0.5,rely = 0.83,anchor='n')
 
-    def _send_angles(self,arduino_obj,robot_obj):
+    def _create_label_for_inverse(self):
+        start,offset,x,x2 = 0.05,0.13,0.2,0.7
+
+        label_X = tk.Label(self.inverse_frame,text=f'X: '.upper(),font='Helvetic 13 bold',bg='lightgray')
+        label_X.place(relx=x,rely=start+offset*0,anchor='n')
+        limitlabel_X = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_X.place(relx=x2,rely=start+offset*0,anchor='n')
+        
+        label_Y = tk.Label(self.inverse_frame,text=f'Y: '.upper(),font='Helvetic 13 bold',bg='lightgray')
+        label_Y.place(relx=x,rely=start+offset*2,anchor='n')
+        limitlabel_Y = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_Y.place(relx=x2,rely=start+offset*2,anchor='n')
+
+        label_Z = tk.Label(self.inverse_frame,text=f'Z: '.upper(),font='Helvetic 13 bold',bg='lightgray')
+        label_Z.place(relx=x,rely=start+offset*4,anchor='n')
+        limitlabel_Z = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_Z.place(relx=x2,rely=start+offset*4,anchor='n')
+
+
+
+
+    def create_inverse_frame(self,arduino_obj,robot_obj):
+
+        self._create_label_for_inverse()
+        self._create_xyz_variable()
+        self.X_entry = tk.Entry(self.inverse_frame,textvariable=self.x,font='Helvetic 13 bold',justify='right')
+        self.Y_entry = tk.Entry(self.inverse_frame,textvariable=self.y,font='Helvetic 13 bold',justify='right')
+        self.Z_entry = tk.Entry(self.inverse_frame,textvariable=self.z,font='Helvetic 13 bold',justify='right')
+        start,offset,x = 0.05,0.13,0.4
+        self.X_entry.place(relx = x,rely=start,anchor='n',relwidth=0.2)
+        self.Y_entry.place(relx = x,rely=start+offset*2,anchor='n',relwidth=0.2)
+        self.Z_entry.place(relx = x,rely=start+offset*4,anchor='n',relwidth=0.2)
+
+        self.send_xyz = tk.Button(self.inverse_frame,bg = 'lightblue',text='START',font='Helvetic 13 bold',
+                                    command=lambda: self._inverse_kinematics(arduino_obj,robot_obj))
+        self.send_xyz.place(relx = 0.5,rely = 0.83,anchor='n')
+
+    def _inverse_kinematics(self,arduino_obj,robot_obj):
+        
+        target = [self.x,self.y,self.z]
+        target = [float(i.get().strip()) for i in target]
+        _,self.angle1,self.angle2,self.angle3,self.angle4,self.angle5,_ = robot_obj.compute_inverse_kinematics(target)
+        self._send_angles(arduino_obj,robot_obj,inverse_kinematics=True)
+
+
+    def _send_angles(self,arduino_obj,robot_obj,inverse_kinematics = False):
         angles_list = [self.angle1,self.angle2,self.angle3,self.angle4,self.angle5]
-        angles_list = [i.get().strip() for i in angles_list]
-        angles_int_list = [int(i) for i in angles_list]
+        if inverse_kinematics:
+            angles_list = [math.degrees(i) for i in angles_list]
+            angles_list = [int(i+90) for i in angles_list]
+            angles_list = [str(i) for i in angles_list]
+        else:
+            angles_list = [i.get().strip() for i in angles_list]
+            angles_int_list = [int(i) for i in angles_list]
         arduino_obj.arduino.write(b'17')
         time.sleep(0.1)
         for i in angles_list:
             arduino_obj.arduino.write(i.encode('UTF-8'))
             print(i.encode('UTF-8'))
             time.sleep(0.1)
-        angles_int_list.insert(0,0)
-        angles_int_list.append(0)
-        t_matrix = robot_obj.forward_kinematics(angles_int_list)
-        position = t_matrix[:3,3].astype(np.uint8)
-        print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
+        if not inverse_kinematics:    
+            angles_int_list.insert(0,0)
+            angles_int_list.append(0)
+            t_matrix = robot_obj.forward_kinematics(angles_int_list)
+            position = t_matrix[:3,3].astype(np.uint8)
+            print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
 
 
 

@@ -30,7 +30,7 @@ def command_buttons_handel(buttons,arduino):
 
     while True:
         try:    
-            if  arduino.arduino is not None:
+            if arduino.arduino is not None:
                 for button in buttons:
                     if button.message is not None:
                         messaggio = button.message
@@ -167,6 +167,7 @@ if __name__ == '__main__':
         
         # Donw frame setting --> Forward kinematics option
         frame_down.create_forward_frame(arduino,my_robot)
+        frame_down.create_inverse_frame(arduino,my_robot)
 
         
         

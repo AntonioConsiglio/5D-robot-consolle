@@ -124,7 +124,7 @@ if __name__ == '__main__':
         frame_cam.place(relx=0.504,rely=0.05,width=646,height=486,anchor='n')
         
         canvas_cam = utils.CanvasCam(frame_cam,relx=0.5,rely=0,anchor='n')
-        camera_manager = utils.VideoCapture(canvas_cam,camera_number=2) 
+        camera_manager = utils.VideoCapture(canvas_cam,camera_number=0) 
 
         ## FRAME SX
 

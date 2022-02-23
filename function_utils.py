@@ -5,6 +5,7 @@ date: 2022-01-30
 
 Here there are the useful function to run the ROBOT ARM 5D.
 '''
+from turtle import hideturtle
 import serial
 import numpy as np
 import tkinter as tk
@@ -134,6 +135,10 @@ class FrameDown(tk.Frame):
         self.subframe_dx = tk.Frame(self,bg='green')
         self._place_subframe()
         self._split_subframe_dx()
+        self._split_subframe_sx()
+        self._create_angle_variable()
+        self._angles_info_labeles()
+        self._create_xyz_variable()
 
     def _place_subframe(self):
         self.subframe_dx.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
@@ -146,15 +151,34 @@ class FrameDown(tk.Frame):
                                             labelanchor='n',bg='lightgray',font='Helvetic 10 bold')
         self.inverse_frame.place(relx=0.25,rely=0,relwidth=0.5,relheight=1,anchor='n')
         self.forward_frame.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
+
+    def _split_subframe_sx(self):
+        self.position_frame = tk.LabelFrame(self.subframe_sx,text="POSITION INFO",labelanchor='n',font='Helvetic 10 bold')
+        self.position_frame_angle = tk.LabelFrame(self.position_frame,text="joints' angle",labelanchor='n',font='Helvetic 10 bold')
+        self.position_frame_xyz = tk.LabelFrame(self.position_frame,text="xyz position",labelanchor='n',font='Helvetic 10 bold')
+        self.position_frame_angle.place(relx=0.5,rely=0,relwidth=1,relheight=0.66,anchor='n')
+        self.position_frame_xyz.place(relx=0.5,rely=0.67,relwidth=1,relheight=0.33,anchor='n')
+        self.position_frame.place(relx=0.66,rely=0,relwidth=0.33,relheight=1,anchor='nw')
     
     def _create_angle_variable(self):
+
         self.angle1 = tk.StringVar()
         self.angle2 = tk.StringVar()
         self.angle3 = tk.StringVar()
         self.angle4 = tk.StringVar()
         self.angle5 = tk.StringVar()
         self.angle6 = tk.StringVar()
-    
+        self._set_angle_variable()
+        
+    def _set_angle_variable(self):
+
+        self.angle6.set('90')
+        self.angle5.set('90')
+        self.angle4.set('90')
+        self.angle3.set('90')
+        self.angle2.set('90')
+        self.angle1.set('90')
+
     def _create_xyz_variable(self):
         self.x = tk.StringVar()
         self.y = tk.StringVar()
@@ -170,7 +194,6 @@ class FrameDown(tk.Frame):
 
     def create_forward_frame(self,arduino_obj,robot_obj):
 
-        self._create_angle_variable()
         self._create_label_variable()
         self.entry_angle6 = tk.Entry(self.forward_frame,textvariable=self.angle6,font='Helvetic 10 bold',justify='right')
         self.entry_angle5 = tk.Entry(self.forward_frame,textvariable=self.angle5,font='Helvetic 10 bold',justify='right')
@@ -208,13 +231,9 @@ class FrameDown(tk.Frame):
         limitlabel_Z = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
         limitlabel_Z.place(relx=x2,rely=start+offset*4,anchor='n')
 
-
-
-
     def create_inverse_frame(self,arduino_obj,robot_obj):
 
         self._create_label_for_inverse()
-        self._create_xyz_variable()
         self.X_entry = tk.Entry(self.inverse_frame,textvariable=self.x,font='Helvetic 13 bold',justify='right')
         self.Y_entry = tk.Entry(self.inverse_frame,textvariable=self.y,font='Helvetic 13 bold',justify='right')
         self.Z_entry = tk.Entry(self.inverse_frame,textvariable=self.z,font='Helvetic 13 bold',justify='right')
@@ -234,13 +253,13 @@ class FrameDown(tk.Frame):
         _,self.angle1,self.angle2,self.angle3,self.angle4,self.angle5,_ = robot_obj.compute_inverse_kinematics(target)
         self._send_angles(arduino_obj,robot_obj,inverse_kinematics=True)
 
-
     def _send_angles(self,arduino_obj,robot_obj,inverse_kinematics = False):
         angles_list = [self.angle1,self.angle2,self.angle3,self.angle4,self.angle5]
         if inverse_kinematics:
             angles_list = [math.degrees(i) for i in angles_list]
             angles_list = [int(i+90) for i in angles_list]
             angles_list = [str(i) for i in angles_list]
+            self.angle1,self.angle2,self.angle3,self.angle4,self.angle5 = angles_list
         else:
             angles_list = [i.get().strip() for i in angles_list]
             angles_int_list = [int(i) for i in angles_list]
@@ -257,6 +276,25 @@ class FrameDown(tk.Frame):
             position = t_matrix[:3,3].astype(np.uint8)
             print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
 
+    def _angles_info_labeles(self):
+
+        start,offset,x = 0.05,0.15,0.5
+        self.info_angle_1=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle1)
+        self.info_angle_1.place(relx=x,rely=start+offset*0,relwidth=0.8,relheight=0.13,anchor='n')
+        self.info_angle_2=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle2)
+        self.info_angle_2.place(relx=x,rely=start+offset*1,relwidth=0.8,relheight=0.13,anchor='n')
+        self.info_angle_3=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle3)
+        self.info_angle_3.place(relx=x,rely=start+offset*2,relwidth=0.8,relheight=0.13,anchor='n')
+        self.info_angle_4=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle4)
+        self.info_angle_4.place(relx=x,rely=start+offset*3,relwidth=0.8,relheight=0.13,anchor='n')
+        self.info_angle_5=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle5)
+        self.info_angle_5.place(relx=x,rely=start+offset*4,relwidth=0.8,relheight=0.13,anchor='n')
+        self.info_angle_6=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle6)
+        self.info_angle_6.place(relx=x,rely=start+offset*5,relwidth=0.8,relheight=0.13,anchor='n')
+        
+
+    def _xyx_info_labeles():
+        pass
 
 
 class SerialInterface(tk.LabelFrame):

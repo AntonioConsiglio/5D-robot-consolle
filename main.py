@@ -84,6 +84,7 @@ def enumerate_serial_ports():
 
 if __name__ == '__main__':
     try:
+
         root = tk.Tk()
         root.title('CONSOLLE')
         root.geometry("1300x800")
@@ -101,6 +102,13 @@ if __name__ == '__main__':
         # Enumerate serial ports
         list_serial_port = enumerate_serial_ports()
 
+        # Serial connection object
+        arduino = utils.SerialConnection(porta,baud_rate)
+
+        # Robot object
+        my_robot = robot.Robot('arduino_robot')
+
+
         ## MAIN FRAME OF CONSOLLE == 3
 
         frameTV = tk.Frame(root,bg = 'grey')
@@ -109,7 +117,7 @@ if __name__ == '__main__':
         frameManual = tk.Frame(root,bg = 'black')
         frameManual.place(relx= 0.75,rely=0,anchor='n',relwidth=0.492,relheight=0.67)
 
-        frame_down =  utils.FrameDown(root,bg='yellow')
+        frame_down =  utils.FrameDown(root,arduino,my_robot,bg='yellow')
         frame_down.place(relx= 0.5,rely=0.67,anchor='n',relwidth=1,relheight=0.33)
         ## frameManual subframe
 
@@ -124,7 +132,7 @@ if __name__ == '__main__':
         frame_cam.place(relx=0.504,rely=0.05,width=646,height=486,anchor='n')
         
         canvas_cam = utils.CanvasCam(frame_cam,relx=0.5,rely=0,anchor='n')
-        camera_manager = utils.VideoCapture(canvas_cam,camera_number=0) 
+        camera_manager = utils.VideoCapture(canvas_cam,camera_number=1) 
 
         ## FRAME SX
 
@@ -157,32 +165,11 @@ if __name__ == '__main__':
         start += inc
         shoulderZ = utils.CommandButton(frameDX,text='ROTATION SHOULDER Z',rely=start,mexPlus = b'11',mexMenos = b'12',number=6)
         buttons.append(shoulderZ)
-
-        # Serial connection object
-        arduino = utils.SerialConnection(porta,baud_rate)
-
-        # Robot object
-        my_robot = robot.Robot('arduino_robot')
-        # print(my_robot.forward_kinematics([0]*7))
         
         # Donw frame setting --> Forward kinematics option
-        frame_down.create_forward_frame(arduino,my_robot)
-        frame_down.create_inverse_frame(arduino,my_robot)
-
-        
-        
-
-        
 
         # Start mode
         start_mode(control_panel = buttons,comunication_class=arduino)
-
-
-        
-
-        
-
-
 
         root.protocol("WM_DELETE_WINDOW",lambda: sys.exit())
         root.mainloop()

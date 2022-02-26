@@ -3,7 +3,7 @@ import numpy as np
 import ikpy.utils.plot as plot_utils
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
-import matplotlib.pyplot
+import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 
@@ -41,10 +41,10 @@ class Robot(Chain):
             ),
             URDFLink(
                 name="elbow",
-                bounds=(0,3.14),
+                bounds=(-1.57,1.57),
                 origin_translation=[0,120,0],
                 origin_orientation=[0,0,0],
-                rotation=[0,0,1],
+                rotation=[0,0,-1],
             ),
             URDFLink(
                 name="wristX",
@@ -71,3 +71,11 @@ class Robot(Chain):
 
     def compute_inverse_kinematics(self,target_position):
         return self.robot.inverse_kinematics(target_position)
+
+if __name__=='__main__':
+
+    robot = Robot('prova')
+    tm = robot.robot.forward_kinematics([0,0,0.349,1.57,0,-1.57,0])
+    target=tm[:3,3]
+    robot.robot.plot([0,0,0.349,1.57,0,1.57,0],ax=None)
+    plt.show()

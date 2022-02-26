@@ -118,27 +118,40 @@ class VideoCapture():
 
     def _start_video(self):
         while self.state:
-            res,cap = self.frames.read()
-            if res:
-                cap = cv2.cvtColor(cap,cv2.COLOR_BGR2RGB)
-                self.canva.update_image(cap)
+            if self.camera == 1:
+                image = np.zeros((480,640))
+                cv2.putText(image,'No Cam Available...',(150,230),cv2.FONT_ITALIC,1,(255,255,255),2)
+                self.canva.update_image(image)
+                self.state=False
             else:
-                pass
-            #time.sleep(0.005)
+                res,cap = self.frames.read()
+                if res:
+                    cap = cv2.cvtColor(cap,cv2.COLOR_BGR2RGB)
+                    self.canva.update_image(cap)
+                else:
+                    pass
+                #time.sleep(0.005)
 
 
 class FrameDown(tk.Frame):
 
-    def __init__(self,master,**kwargs):
+    def __init__(self,master,arduino_obj,robot_obj,**kwargs):
         tk.Frame.__init__(self,master,kwargs)
-        self.subframe_sx = tk.LabelFrame(self,text='da_capire_cosa_devo_farci',labelanchor='n',bg='red')
+        self.subframe_sx = tk.LabelFrame(self,text='CONTROL INFO',labelanchor='n',bg='lightgreen')
         self.subframe_dx = tk.Frame(self,bg='green')
+        self.arduino_obj = arduino_obj
+        self.robot_obj = robot_obj
         self._place_subframe()
         self._split_subframe_dx()
         self._split_subframe_sx()
         self._create_angle_variable()
+        self._create_angle_view_variable()
         self._angles_info_labeles()
         self._create_xyz_variable()
+        self._create_xyz_variable_info()
+        self._xyz_info_labeles()
+        self._create_forward_frame()
+        self._create_inverse_frame()
 
     def _place_subframe(self):
         self.subframe_dx.place(relx=0.75,rely=0,relwidth=0.5,relheight=1,anchor='n')
@@ -168,21 +181,64 @@ class FrameDown(tk.Frame):
         self.angle4 = tk.StringVar()
         self.angle5 = tk.StringVar()
         self.angle6 = tk.StringVar()
+    
+    def _create_angle_view_variable(self):
+
+        self.angle1_info = tk.StringVar()
+        self.angle2_info = tk.StringVar()
+        self.angle3_info = tk.StringVar()
+        self.angle4_info = tk.StringVar()
+        self.angle5_info = tk.StringVar()
+        self.angle6_info = tk.StringVar()
         self._set_angle_variable()
         
-    def _set_angle_variable(self):
+    def _set_angle_variable(self,angoli=None,first=True):
 
-        self.angle6.set('90')
-        self.angle5.set('90')
-        self.angle4.set('90')
-        self.angle3.set('90')
-        self.angle2.set('90')
-        self.angle1.set('90')
-
+        if first:      
+            self.angle1_info.set('160')
+            self.angle2_info.set('0')
+            self.angle3_info.set('90')
+            self.angle4_info.set('180')
+            self.angle5_info.set('110')
+            self.angle6_info.set('90')
+        elif not first and angoli is not None:
+            angles_info = [self.angle6_info,self.angle5_info,self.angle4_info,
+                            self.angle3_info,self.angle2_info]
+            for index, i in enumerate(angoli):
+                angles_info[index].set(i)
+        
     def _create_xyz_variable(self):
+        
         self.x = tk.StringVar()
         self.y = tk.StringVar()
         self.z = tk.StringVar()
+    
+    def _create_xyz_variable_info(self):
+        
+        self.x_info = tk.StringVar()
+        self.y_info = tk.StringVar()
+        self.z_info = tk.StringVar()
+        self._set_xyz_variable()
+
+    def _set_xyz_variable(self,xyz = None,first=True):
+        
+        if first:
+            angles_list = [self.angle6_info.get(),self.angle5_info.get(),self.angle4_info.get(),self.angle3_info.get(),self.angle2_info.get()]
+            angles_int_list = [math.radians(int(i)-90) for i in angles_list]
+            angles_int_list.insert(0,0)
+            angles_int_list.append(0)
+            t_matrix = self.robot_obj.forward_kinematics(angles_int_list)
+            position = np.round(t_matrix[:3,3],2)
+
+            self.x_info.set(str(position[0]).split('.')[0])
+            self.y_info.set(str(position[1]).split('.')[0])
+            self.z_info.set(str(position[2]).split('.')[0])
+
+        elif not first and xyz is not None:
+
+            self.x_info.set(str(xyz[0]).split('.')[0])
+            self.y_info.set(str(xyz[1]).split('.')[0])
+            self.z_info.set(str(xyz[2]).split('.')[0])
     
     def _create_label_variable(self):
         start,offset,x,x2 = 0.05,0.13,0.25,0.8
@@ -192,7 +248,7 @@ class FrameDown(tk.Frame):
             limitlabel = tk.Label(self.forward_frame,text='(0 ÷ 180)',font='Helvetic 10 bold',bg='lightgray')
             limitlabel.place(relx=x2,rely=start+offset*i,anchor='n')
 
-    def create_forward_frame(self,arduino_obj,robot_obj):
+    def _create_forward_frame(self):
 
         self._create_label_variable()
         self.entry_angle6 = tk.Entry(self.forward_frame,textvariable=self.angle6,font='Helvetic 10 bold',justify='right')
@@ -202,100 +258,131 @@ class FrameDown(tk.Frame):
         self.entry_angle2 = tk.Entry(self.forward_frame,textvariable=self.angle2,font='Helvetic 10 bold',justify='right')
         self.entry_angle1 = tk.Entry(self.forward_frame,textvariable=self.angle1,font='Helvetic 10 bold',justify='right')
         start,offset,x = 0.05,0.13,0.55
-        self.entry_angle6.place(relx = x,rely=start,anchor='n',relwidth=0.2)
-        self.entry_angle5.place(relx = x,rely=start+offset,anchor='n',relwidth=0.2)
-        self.entry_angle4.place(relx = x,rely=start+offset*2,anchor='n',relwidth=0.2)
-        self.entry_angle3.place(relx = x,rely=start+offset*3,anchor='n',relwidth=0.2)
-        self.entry_angle2.place(relx = x,rely=start+offset*4,anchor='n',relwidth=0.2)
-        self.entry_angle1.place(relx = x,rely=start+offset*5,anchor='n',relwidth=0.2)
+        self.entry_angle1.place(relx = x,rely=start,anchor='n',relwidth=0.2)
+        self.entry_angle2.place(relx = x,rely=start+offset,anchor='n',relwidth=0.2)
+        self.entry_angle3.place(relx = x,rely=start+offset*2,anchor='n',relwidth=0.2)
+        self.entry_angle4.place(relx = x,rely=start+offset*3,anchor='n',relwidth=0.2)
+        self.entry_angle5.place(relx = x,rely=start+offset*4,anchor='n',relwidth=0.2)
+        self.entry_angle6.place(relx = x,rely=start+offset*5,anchor='n',relwidth=0.2)
 
         self.send_angle = tk.Button(self.forward_frame,bg = 'lightblue',text='START',font='Helvetic 13 bold',
-                                    command=lambda: self._send_angles(arduino_obj,robot_obj))
+                                    command=self._send_angles)
         self.send_angle.place(relx = 0.5,rely = 0.83,anchor='n')
 
     def _create_label_for_inverse(self):
-        start,offset,x,x2 = 0.05,0.13,0.2,0.7
+        start,offset,x,x2 = 0.13,0.13,0.2,0.7
 
         label_X = tk.Label(self.inverse_frame,text=f'X: '.upper(),font='Helvetic 13 bold',bg='lightgray')
         label_X.place(relx=x,rely=start+offset*0,anchor='n')
-        limitlabel_X = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_X = tk.Label(self.inverse_frame,text='(0 ÷ 250 mm)',font='Helvetic 13 bold',bg='lightgray')
         limitlabel_X.place(relx=x2,rely=start+offset*0,anchor='n')
         
         label_Y = tk.Label(self.inverse_frame,text=f'Y: '.upper(),font='Helvetic 13 bold',bg='lightgray')
         label_Y.place(relx=x,rely=start+offset*2,anchor='n')
-        limitlabel_Y = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_Y = tk.Label(self.inverse_frame,text='(0 ÷ 250 mm)',font='Helvetic 13 bold',bg='lightgray')
         limitlabel_Y.place(relx=x2,rely=start+offset*2,anchor='n')
 
         label_Z = tk.Label(self.inverse_frame,text=f'Z: '.upper(),font='Helvetic 13 bold',bg='lightgray')
         label_Z.place(relx=x,rely=start+offset*4,anchor='n')
-        limitlabel_Z = tk.Label(self.inverse_frame,text='(0 ÷ 200 mm)',font='Helvetic 13 bold',bg='lightgray')
+        limitlabel_Z = tk.Label(self.inverse_frame,text='(0 ÷ 410 mm)',font='Helvetic 13 bold',bg='lightgray')
         limitlabel_Z.place(relx=x2,rely=start+offset*4,anchor='n')
 
-    def create_inverse_frame(self,arduino_obj,robot_obj):
+    def _create_inverse_frame(self):
 
         self._create_label_for_inverse()
         self.X_entry = tk.Entry(self.inverse_frame,textvariable=self.x,font='Helvetic 13 bold',justify='right')
         self.Y_entry = tk.Entry(self.inverse_frame,textvariable=self.y,font='Helvetic 13 bold',justify='right')
         self.Z_entry = tk.Entry(self.inverse_frame,textvariable=self.z,font='Helvetic 13 bold',justify='right')
-        start,offset,x = 0.05,0.13,0.4
+        start,offset,x = 0.13,0.13,0.4
         self.X_entry.place(relx = x,rely=start,anchor='n',relwidth=0.2)
         self.Y_entry.place(relx = x,rely=start+offset*2,anchor='n',relwidth=0.2)
         self.Z_entry.place(relx = x,rely=start+offset*4,anchor='n',relwidth=0.2)
 
         self.send_xyz = tk.Button(self.inverse_frame,bg = 'lightblue',text='START',font='Helvetic 13 bold',
-                                    command=lambda: self._inverse_kinematics(arduino_obj,robot_obj))
+                                    command=self._inverse_kinematics)
         self.send_xyz.place(relx = 0.5,rely = 0.83,anchor='n')
 
-    def _inverse_kinematics(self,arduino_obj,robot_obj):
+    def _inverse_kinematics(self):
         
         target = [self.x,self.y,self.z]
         target = [float(i.get().strip()) for i in target]
-        _,self.angle1,self.angle2,self.angle3,self.angle4,self.angle5,_ = robot_obj.compute_inverse_kinematics(target)
-        self._send_angles(arduino_obj,robot_obj,inverse_kinematics=True)
+        self._set_xyz_variable(xyz=target,first=False)
+        _,self.angle6,self.angle5,self.angle4,self.angle3,self.angle2,_ = self.robot_obj.compute_inverse_kinematics(target)
+        self._send_angles(inverse_kinematics=True)
 
-    def _send_angles(self,arduino_obj,robot_obj,inverse_kinematics = False):
-        angles_list = [self.angle1,self.angle2,self.angle3,self.angle4,self.angle5]
+    def _send_angles(self,inverse_kinematics = False):
+        
+        angles_list = [self.angle6,self.angle5,self.angle4,self.angle3,self.angle2]
         if inverse_kinematics:
             angles_list = [math.degrees(i) for i in angles_list]
             angles_list = [int(i+90) for i in angles_list]
             angles_list = [str(i) for i in angles_list]
-            self.angle1,self.angle2,self.angle3,self.angle4,self.angle5 = angles_list
+            self.angle6,self.angle5,self.angle4,self.angle3,self.angle2 = angles_list
+            self._set_angle_variable(angoli=angles_list,first=False)
         else:
             angles_list = [i.get().strip() for i in angles_list]
-            angles_int_list = [int(i) for i in angles_list]
-        arduino_obj.arduino.write(b'17')
+            self._set_angle_variable(angoli=angles_list,first=False)
+            angles_int_list = [math.radians(int(i)-90) for i in angles_list]
+            
+        self.arduino_obj.arduino.write(b'17')
         time.sleep(0.1)
         for i in angles_list:
-            arduino_obj.arduino.write(i.encode('UTF-8'))
+            self.arduino_obj.arduino.write(i.encode('UTF-8'))
             print(i.encode('UTF-8'))
             time.sleep(0.1)
         if not inverse_kinematics:    
             angles_int_list.insert(0,0)
             angles_int_list.append(0)
-            t_matrix = robot_obj.forward_kinematics(angles_int_list)
-            position = t_matrix[:3,3].astype(np.uint8)
+            t_matrix = self.robot_obj.forward_kinematics(angles_int_list)
+            position = np.round(t_matrix[:3,3],0)
+            self._set_xyz_variable(xyz = position,first=False)
             print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
+
+    # INFO PART
 
     def _angles_info_labeles(self):
 
-        start,offset,x = 0.05,0.15,0.5
-        self.info_angle_1=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle1)
-        self.info_angle_1.place(relx=x,rely=start+offset*0,relwidth=0.8,relheight=0.13,anchor='n')
-        self.info_angle_2=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle2)
-        self.info_angle_2.place(relx=x,rely=start+offset*1,relwidth=0.8,relheight=0.13,anchor='n')
-        self.info_angle_3=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle3)
-        self.info_angle_3.place(relx=x,rely=start+offset*2,relwidth=0.8,relheight=0.13,anchor='n')
-        self.info_angle_4=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle4)
-        self.info_angle_4.place(relx=x,rely=start+offset*3,relwidth=0.8,relheight=0.13,anchor='n')
-        self.info_angle_5=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle5)
-        self.info_angle_5.place(relx=x,rely=start+offset*4,relwidth=0.8,relheight=0.13,anchor='n')
-        self.info_angle_6=tk.Label(self.position_frame_angle,bg='red',textvariable=self.angle6)
-        self.info_angle_6.place(relx=x,rely=start+offset*5,relwidth=0.8,relheight=0.13,anchor='n')
-        
+        start,offset,x,w,color = 0.05,0.15,0.67,0.2,'white'
+        self.info_angle_1=tk.Label(self.position_frame_angle,bg= color,textvariable=self.angle1_info)
+        self.info_angle_1.place(relx=x,rely=start+offset*0,relwidth=w,relheight=0.13,anchor='n')
+        self.info_angle_2=tk.Label(self.position_frame_angle,bg=color,textvariable=self.angle2_info)
+        self.info_angle_2.place(relx=x,rely=start+offset*1,relwidth=w,relheight=0.13,anchor='n')
+        self.info_angle_3=tk.Label(self.position_frame_angle,bg=color,textvariable=self.angle3_info)
+        self.info_angle_3.place(relx=x,rely=start+offset*2,relwidth=w,relheight=0.13,anchor='n')
+        self.info_angle_4=tk.Label(self.position_frame_angle,bg=color,textvariable=self.angle4_info)
+        self.info_angle_4.place(relx=x,rely=start+offset*3,relwidth=w,relheight=0.13,anchor='n')
+        self.info_angle_5=tk.Label(self.position_frame_angle,bg=color,textvariable=self.angle5_info)
+        self.info_angle_5.place(relx=x,rely=start+offset*4,relwidth=w,relheight=0.13,anchor='n')
+        self.info_angle_6=tk.Label(self.position_frame_angle,bg=color,textvariable=self.angle6_info)
+        self.info_angle_6.place(relx=x,rely=start+offset*5,relwidth=w,relheight=0.13,anchor='n')
+        self._create_angles_label_info()
 
-    def _xyx_info_labeles():
-        pass
+    def _create_angles_label_info(self):
+        start,offset,x,x2 = 0.05,0.15,0.35,0.8
+        for i in range(6):
+            label = tk.Label(self.position_frame_angle,text=f'angle joint {i+1}: '.upper(),font='Helvetic 7 bold',bg='lightgray')
+            label.place(relx=x,rely=start+offset*i,anchor='n')
+            limitlabel = tk.Label(self.position_frame_angle,text='°',font='Helvetic 7 bold',bg='lightgray')
+            limitlabel.place(relx=x2,rely=start+offset*i,anchor='nw')
 
+    def _xyz_info_labeles(self):
+        y,w,color = 0.35,0.13,'white'
+        self.info_x=tk.Label(self.position_frame_xyz,bg= color,textvariable=self.x_info,font='Helvetic 8 bold')
+        self.info_x.place(rely=y,relx=0.19,relwidth=w,anchor='n')
+        self.info_y=tk.Label(self.position_frame_xyz,bg=color,textvariable=self.y_info,font='Helvetic 8 bold')
+        self.info_y.place(rely=y,relx=0.49,relwidth=w,anchor='n')
+        self.info_z=tk.Label(self.position_frame_xyz,bg=color,textvariable=self.z_info,font='Helvetic 8 bold')
+        self.info_z.place(rely=y,relx=0.79,relwidth=w,anchor='n')
+        self._create_xyz_label_info()
+
+    def _create_xyz_label_info(self):
+        start,offset,y,offset2 = 0.05,0.3,0.35,0.27
+        assi = ['x','y','z']
+        for i,asse in enumerate(assi):
+            label = tk.Label(self.position_frame_xyz,text=f'{asse}:'.upper(),font='Helvetic 8 bold',bg='lightgray')
+            label.place(rely=y,relx=start+offset*i,anchor='nw')
+            limitlabel = tk.Label(self.position_frame_xyz,text='mm',font='Helvetic 8')
+            limitlabel.place(rely=y+0.02,relx=offset2*(i+1+(i-1)*0.1),anchor='nw')
 
 class SerialInterface(tk.LabelFrame):
 

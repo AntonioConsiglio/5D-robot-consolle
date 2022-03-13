@@ -325,11 +325,11 @@ class FrameDown(tk.Frame):
             angles_int_list = [math.radians(int(i)-90) for i in angles_list]
             
         self.arduino_obj.arduino.write(b'17')
+        time.sleep(0.05)
+        message = ','.join(angles_list)
+        self.arduino_obj.arduino.write(message.encode('UTF-8'))
+        print(message.encode('UTF-8'))
         time.sleep(0.1)
-        for i in angles_list:
-            self.arduino_obj.arduino.write(i.encode('UTF-8'))
-            print(i.encode('UTF-8'))
-            time.sleep(0.1)
         if not inverse_kinematics:    
             angles_int_list.insert(0,0)
             angles_int_list.append(0)

@@ -1,3 +1,39 @@
+void split_string_for(String to_split,char splitter)
+{
+  int lunghezza = to_split.length();
+  int index[7] = {0};
+  int j = 1;
+  if (lunghezza > 1){
+    //Serial.println(to_split);
+  for(int i=0;i< lunghezza;i++)
+  {
+    if (to_split[i] == splitter){
+      index[j] = i;
+//      Serial.println(i);
+//      Serial.println("INDEX: ");
+//      Serial.println(index[j]);
+      j++;
+    }
+    index[j] = lunghezza;
+   
+  }
+  for (int k=0;k<6;k++)
+  {
+   //Serial.println("INDEX FOR SPLITTING");
+   //Serial.println(index[k]);
+   //Serial.println(index[k+1]);
+   if (k == 0){
+   angles[k] = to_split.substring(index[k],index[k+1]).toInt();
+   //Serial.println(prova_split[k]);}
+   }
+   else{
+    angles[k] = to_split.substring(index[k]+1,index[k+1]).toInt();
+   //Serial.println(prova_split[k]);
+   }
+  }
+}
+}
+
 void run_kinematics_motion() 
 {
   bool servb_done = false;
@@ -9,23 +45,28 @@ void run_kinematics_motion()
   {
     if (Bluetooth.available() > 0) 
     {
-      dataIn = Bluetooth.readString().toInt(); 
-      if (dataIn != 255) 
-      {
-        if (index_inverse < 5)
-        {
-          angles[index_inverse] = dataIn;
-          //Serial.println("angoli salvati: "+String(angles[index_inverse])+" indice: "+String(index_inverse));
-          index_inverse++;
-        }
-        if (index_inverse == 5) 
-        {
-          state = false;
-          index_inverse = 0;
-          running_kinematic = true;
-        }
-      }
-      else state = false;
+      String datas = Bluetooth.readString();
+      split_string_for(datas,',');
+      state = false;
+      index_inverse = 0;
+      running_kinematic = true;
+      //dataIn = Bluetooth.readString().toInt(); 
+      //if (dataIn != 255) 
+      //{
+//        if (index_inverse < 5)
+//        {
+//          angles[index_inverse] = dataIn;
+//          //Serial.println("angoli salvati: "+String(angles[index_inverse])+" indice: "+String(index_inverse));
+//          index_inverse++;
+//        }
+//        if (index_inverse == 5) 
+//        {
+//          state = false;
+//          index_inverse = 0;
+//          running_kinematic = true;
+        //}
+      //}
+      //else state = false;
     }
   }
   while (running_kinematic)

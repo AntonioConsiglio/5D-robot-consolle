@@ -19,6 +19,7 @@ int current_angle[6] ={}; //posizione corrente
 int servobPos3[50], servo1Pos3[50], servo2Pos3[50], servop1Pos3[50], servop2Pos3[50], servop3Pos3[50]; //storing positions
 bool state = true;
 int angles[5] = {};
+String prova_split[5] = {};
 
 
 
@@ -179,7 +180,8 @@ void loop() {
 
   if (Bluetooth.available() > 0); {
     dataIn = Bluetooth.readString().toInt();
-    Serial.write(dataIn);
+    if (dataIn != 0){
+    Serial.println(dataIn);}
     if (dataIn == 1) {
       m = 1;
     }
@@ -425,7 +427,7 @@ void loop() {
     }
 
     if (m == 17) {
-      Bluetooth.println("s");
+      //Bluetooth.println("s");
       run_kinematics_motion();
       m = 0;
       state = true;

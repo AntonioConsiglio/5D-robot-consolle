@@ -1,4 +1,4 @@
-void split_string_for(String to_split,char splitter)
+void split_string_by(String to_split,char splitter)
 {
   int lunghezza = to_split.length();
   int index[7] = {0};
@@ -46,27 +46,10 @@ void run_kinematics_motion()
     if (Bluetooth.available() > 0) 
     {
       String datas = Bluetooth.readString();
-      split_string_for(datas,',');
+      split_string_by(datas,',');
       state = false;
       index_inverse = 0;
       running_kinematic = true;
-      //dataIn = Bluetooth.readString().toInt(); 
-      //if (dataIn != 255) 
-      //{
-//        if (index_inverse < 5)
-//        {
-//          angles[index_inverse] = dataIn;
-//          //Serial.println("angoli salvati: "+String(angles[index_inverse])+" indice: "+String(index_inverse));
-//          index_inverse++;
-//        }
-//        if (index_inverse == 5) 
-//        {
-//          state = false;
-//          index_inverse = 0;
-//          running_kinematic = true;
-        //}
-      //}
-      //else state = false;
     }
   }
   while (running_kinematic)

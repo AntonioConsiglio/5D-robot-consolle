@@ -35,9 +35,9 @@ void setup() {
 
   servo_b.attach(12); // motore della base
   servo_1.attach(11); // motore primo braccio
-  servo_2.attach(4);  // motore secondo braccio
-  servo_p1.attach(5); // motore polso
-  servo_p2.attach(6); // motore supporto presa
+  servo_2.attach(5);  // motore secondo braccio
+  servo_p1.attach(6); // motore polso
+  servo_p2.attach(8); // motore supporto presa
   servo_p3.attach(9); // motore presa
   Serial.begin(38400);
   Bluetooth.begin(38400);
@@ -181,7 +181,9 @@ void loop() {
   if (Bluetooth.available() > 0); {
     dataIn = Bluetooth.readString().toInt();
     if (dataIn != 0){
-    Serial.println(dataIn);}
+    Serial.print("data in equals: ") ;
+    Serial.println(dataIn);
+    }
     if (dataIn == 1) {
       m = 1;
     }
@@ -191,6 +193,7 @@ void loop() {
     }
 
     if (dataIn == 3) {
+      Serial.println("modifico m = 3");
       m = 3;
     }
 
@@ -248,6 +251,9 @@ void loop() {
     if (dataIn == 17) {
       m = 17;
     }
+    if (dataIn == 35){
+      m = 35;
+    }
     // move servomotors
 
     // motore PRESA
@@ -259,6 +265,7 @@ void loop() {
       servo_p3.write(current_angle[5]);
       if (current_angle[5] > 0)
       {
+        Bluetooth.println(m);
         current_angle[5]--;
         delay(speedDelayManual);
       }
@@ -270,6 +277,7 @@ void loop() {
       servo_p3.write(current_angle[5]);
       if (current_angle[5] < 180)
       {
+        Bluetooth.println(m);
         current_angle[5]++;
         delay(speedDelayManual);
       }
@@ -283,6 +291,7 @@ void loop() {
       servo_p2.write(current_angle[4]);
       if (current_angle[4] > 0)
       {
+        Bluetooth.println(m);
         current_angle[4]--;
         delay(speedDelayManual);
       }
@@ -295,6 +304,7 @@ void loop() {
       servo_p2.write(current_angle[4]);
       if (current_angle[4] < 180)
       {
+        Bluetooth.println(m);
         current_angle[4]++;
         delay(speedDelayManual);
       }
@@ -308,6 +318,7 @@ void loop() {
       servo_p1.write(current_angle[3]);
       if (current_angle[3] > 0)
       {
+        Bluetooth.println(m);
         current_angle[3]--;
         delay(speedDelayManual);
       }
@@ -319,6 +330,7 @@ void loop() {
       servo_p1.write(current_angle[3]);
       if (current_angle[3] < 180)
       {
+        Bluetooth.println(m);
         current_angle[3]++;
         delay(speedDelayManual);
       }
@@ -332,6 +344,7 @@ void loop() {
       servo_2.write(current_angle[2]);
       if (current_angle[2] > 0)
       {
+        Bluetooth.println(m);
         current_angle[2]--;
         delay(speedDelayManual);
       }
@@ -344,6 +357,7 @@ void loop() {
       servo_2.write(current_angle[2]);
       if (current_angle[2] < 180)
       {
+        Bluetooth.println(m);
         current_angle[2]++;
         delay(speedDelayManual);
       }
@@ -357,6 +371,7 @@ void loop() {
       servo_1.write(current_angle[1]);
       if (current_angle[1] > 0)
       {
+        Bluetooth.println(m);
         current_angle[1]--;
         delay(speedDelayManual);
       }
@@ -369,6 +384,7 @@ void loop() {
       servo_1.write(current_angle[1]);
       if (current_angle[1] < 180)
       {
+        Bluetooth.println(m);
         current_angle[1]++;
         delay(speedDelayManual);
       }
@@ -382,6 +398,7 @@ void loop() {
       servo_b.write(current_angle[0]);
       if (current_angle[0] > 0)
       {
+        Bluetooth.println(m);
         current_angle[0]--;
         delay(speedDelayManual);
       }
@@ -394,6 +411,7 @@ void loop() {
       servo_b.write(current_angle[0]);
       if (current_angle[0] < 180)
       {
+        Bluetooth.println(m);
         current_angle[0]++;
         delay(speedDelayManual);
       }
@@ -431,11 +449,16 @@ void loop() {
       run_kinematics_motion();
       m = 0;
       state = true;
-//      Serial.println("Angoli inviati: ");
-//      for (int i=0;i<5;i++)
-//      {
-//        Serial.print(" "+String(angles[i]));
-//      }
+    }
+
+    if (m == 35) {
+      Bluetooth.println(m);
+      delay(30);
+      for (int i = 0;i <6;i++){
+        Bluetooth.print(current_angle[i]);
+        delay(30);
+      }
+      m=0;
     }
   }
 }

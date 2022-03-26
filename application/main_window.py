@@ -10,7 +10,7 @@ from .class_utils import *
 from .widget_styles import *
 from .functions_utils import *
 
-baud_rates = ['None','9600','19200','38400']
+# baud_rates = ['None','9600','19200','38400']
 serial_port = 1
 
 class MainWindow(QMainWindow):
@@ -25,7 +25,7 @@ class MainWindow(QMainWindow):
 		self._define_variables()
 		self._define_axis_variables()
 		self.connection_button.setStyleSheet(self.BStyle.green_button)
-		self.baud_rate.addItems(baud_rates)
+		# self.baud_rate.addItems(baud_rates)
 		self.trd1 = self.trd2 = self.trd3 = None
 		self.thread_list = {'1':self.trd1,'2':self.trd2,'3':self.trd3}
 

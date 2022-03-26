@@ -1,11 +1,8 @@
-import ikpy
 import numpy as np
 import ikpy.utils.plot as plot_utils
 from ikpy.chain import Chain
 from ikpy.link import OriginLink, URDFLink
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
-
 
 
 '''

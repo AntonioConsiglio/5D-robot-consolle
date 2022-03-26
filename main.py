@@ -14,8 +14,6 @@ if __name__ == '__main__':
     socket_arduino = ArduinoConnection()
     root.set_connection_socket(socket_arduino)
 
-    #root.start_video(size=(640,480),fps=30)
-
     robot_object = Robot('Robot1')
     root.set_robot_object(robot_object)
 

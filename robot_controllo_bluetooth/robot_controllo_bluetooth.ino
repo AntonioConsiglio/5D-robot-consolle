@@ -266,6 +266,7 @@ void loop() {
       if (current_angle[5] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[5]--;
         delay(speedDelayManual);
       }
@@ -278,6 +279,7 @@ void loop() {
       if (current_angle[5] < 180)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[5]++;
         delay(speedDelayManual);
       }
@@ -292,6 +294,7 @@ void loop() {
       if (current_angle[4] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[4]--;
         delay(speedDelayManual);
       }
@@ -319,6 +322,7 @@ void loop() {
       if (current_angle[3] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[3]--;
         delay(speedDelayManual);
       }
@@ -331,6 +335,7 @@ void loop() {
       if (current_angle[3] < 180)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[3]++;
         delay(speedDelayManual);
       }
@@ -345,6 +350,7 @@ void loop() {
       if (current_angle[2] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[2]--;
         delay(speedDelayManual);
       }
@@ -358,6 +364,7 @@ void loop() {
       if (current_angle[2] < 180)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[2]++;
         delay(speedDelayManual);
       }
@@ -372,6 +379,7 @@ void loop() {
       if (current_angle[1] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[1]--;
         delay(speedDelayManual);
       }
@@ -385,6 +393,7 @@ void loop() {
       if (current_angle[1] < 180)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[1]++;
         delay(speedDelayManual);
       }
@@ -399,6 +408,7 @@ void loop() {
       if (current_angle[0] > 0)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[0]--;
         delay(speedDelayManual);
       }
@@ -412,6 +422,7 @@ void loop() {
       if (current_angle[0] < 180)
       {
         Bluetooth.println(m);
+        Serial.println(m);
         current_angle[0]++;
         delay(speedDelayManual);
       }
@@ -452,11 +463,13 @@ void loop() {
     }
 
     if (m == 35) {
-      Bluetooth.println(m);
+      Bluetooth.println(35);
+      Serial.println(m);
       delay(30);
       for (int i = 0;i <6;i++){
-        Bluetooth.print(current_angle[i]);
-        delay(30);
+        Bluetooth.println(current_angle[i]);
+        Serial.println(current_angle[i]);
+        delay(10);
       }
       m=0;
     }

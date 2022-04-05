@@ -68,6 +68,9 @@ class Robot(Chain):
 
     def compute_inverse_kinematics(self,target_position):
         return self.robot.inverse_kinematics(target_position)
+    
+    def compute_forward_kinematics(self,target_angles):
+        return self.robot.forward_kinematics(target_angles)
 
 if __name__=='__main__':
 

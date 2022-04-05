@@ -59,8 +59,8 @@ class ArduinoConnection(QObject):
         
         if inverse_kinematics:
             angles_list = [math.degrees(i) for i in angles_list]
-            angles_list = [int(i+90) for i in angles_list]
-            angles_list = [str(i) for i in angles_list]
+            angles_list_int = [int(i+90) for i in angles_list]
+            angles_list = [str(i) for i in angles_list_int]
         else:
             angles_list = [i.get().strip() for i in angles_list]
             angles_int_list = [math.radians(int(i)-90) for i in angles_list]
@@ -70,7 +70,7 @@ class ArduinoConnection(QObject):
         message = ','.join(angles_list)
         self.arduino.write(message.encode('UTF-8'))
 
-        return angles_list
+        return angles_list_int
 
         # if not inverse_kinematics:    
         #     angles_int_list.insert(0,0)
@@ -119,20 +119,23 @@ class ArduinoReader(QThread):
         super(ArduinoReader,self).__init__()
         self.socket = None
         self.connection_state=None
+        self.first_send = True
 
     def set_serial(self,arduino):
         self.socket = arduino
+    
+    def set_first_send(self,condition):
+        self.first_send = condition
 
     def run(self):
         #ptvsd.debug_this_thread()
         while self.connection_state:
             message = b''
-            j = 0
             while self.socket.in_waiting:
-                if j == 0:
-                    time.sleep(0.005)
+                if  self.first_send:
+                    time.sleep(0.01)
+                    self.set_first_send(False)
                 lettera = self.socket.read(1)#.decode('utf-8')
-                j+=1
                 if lettera != b'\r':
                     if lettera != b'\n':
                         message+=lettera  

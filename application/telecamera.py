@@ -67,13 +67,13 @@ class DeviceManager():
         depth.disparity.link(xout_depth.input)
             
     def enable_device(self):
-        self.device_ = dhai.Device(self.pipeline)
+        self.device_ = dhai.Device(self.pipeline,usb2Mode=True)
         self.max_disparity = self.node_list[4].initialConfig.getMaxDisparity()
         self._set_output_queue()
     
     def _set_output_queue(self):
-        self.q_rgb = self.device_.getOutputQueue("rgb")
-        self.q_depth = self.device_.getOutputQueue("depth")
+        self.q_rgb = self.device_.getOutputQueue("rgb",maxSize = 1,blocking = False)
+        self.q_depth = self.device_.getOutputQueue("depth",maxSize = 1,blocking = False)
 
     def poll_for_frames(self):
 

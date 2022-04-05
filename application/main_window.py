@@ -1,10 +1,10 @@
-from pickletools import pyset
 import sys
 from threading import Thread
 
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication,QMainWindow
 from PyQt5.QtGui import QImage,QPixmap
+from PyQt5.QtCore import pyqtSignal
 
 from .class_utils import *
 from .widget_styles import *
@@ -14,6 +14,7 @@ from .functions_utils import *
 serial_port = 1
 
 class MainWindow(QMainWindow):
+	movexyz = pyqtSignal([str,float]) # signal to move robot in xyz with virtual joystick [direction, quontity in mm]
 
 	def __init__(self):
 		super(MainWindow,self).__init__()
@@ -47,11 +48,30 @@ class MainWindow(QMainWindow):
 		self.socket_arduino.connection_state.connect(lambda stato: self._change_button_color(self.connection_button,stato))
 		self.socket_arduino.reader.message_recived.connect(self._update_angles_view)
 		#self.socket_arduino.handler.sendmessage.connect(lambda messaggio: self.print_message(messaggio))
+	
+	def calculate_forward_kinematics(self,list_angles):
+		list_angles = robot_to_python_angles(list_angles)
+		tm  = self.robot_object.compute_forward_kinematics(list_angles)		
+		self.x_pos, self.y_pos, self.z_pos = tm[:3,3]
+		self.update_xyz_lcd() 
 
 	def calculate_inverse_kinematics(self):
 		self.x_pos = int(self.x_edit.text().strip())
 		self.y_pos = int(self.y_edit.text().strip())
 		self.z_pos = int(self.z_edit.text().strip())
+		self.update_xyz_lcd()
+		target = [self.x_pos,self.y_pos,self.z_pos]
+		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
+		self.__send_angles([j6,j5,j4,j3,j2],True)
+
+	def calculate_inverse_kinematics_joystic(self,direction,qnt):
+
+		if direction == 'x':
+			self.x_pos += qnt
+		elif direction == 'y':
+			self.y_pos += qnt
+		elif direction == 'z':
+			self.z_pos += qnt
 		self.update_xyz_lcd()
 		target = [self.x_pos,self.y_pos,self.z_pos]
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
@@ -159,6 +179,8 @@ class MainWindow(QMainWindow):
 				self.lcd_joint1.display(self.joint1)
 				self.number_angle = 0
 				self.reciving_current_angles = False
+				self.calculate_forward_kinematics([self.joint6,self.joint5,self.joint4,
+													self.joint3,self.joint2,self.joint1])
 
 	def _change_button_color(self,button,stato):
 		if stato=='connected':
@@ -217,6 +239,8 @@ class MainWindow(QMainWindow):
 		self.x_pos = 0
 		self.y_pos = 0
 		self.z_pos = 0
+	
+
 
 	def _define_slots(self):
 		# Join1
@@ -249,13 +273,14 @@ class MainWindow(QMainWindow):
 		self.menos6.released.connect(self.is_relesed)
 		self.plus6.pressed.connect(lambda: self.sto_premendo(b"12"))
 		self.plus6.released.connect(self.is_relesed)
-		# XYZ
-		# self.plusX.clicked.connect()
-		# self.menosX.clicked.connect()
-		# self.plusY.clicked.connect()
-		# self.menosY.clicked.connect()
-		# self.plusZ.clicked.connect()
-		# self.menosZ.clicked.connect()
+		# Move robot in xyz with joystick
+		self.plusX.clicked.connect(lambda: self.movexyz.emit('x',10.0))
+		self.menosX.clicked.connect(lambda: self.movexyz.emit('x',-10.0))
+		self.plusY.clicked.connect(lambda: self.movexyz.emit('y',10.0))
+		self.menosY.clicked.connect(lambda: self.movexyz.emit('y',-10.0))
+		self.plusZ.clicked.connect(lambda: self.movexyz.emit('z',10.0))
+		self.menosZ.clicked.connect(lambda: self.movexyz.emit('z',-10.0))
+		self.movexyz.connect(self.calculate_inverse_kinematics_joystic)
 		# inverse_kinematics
 		self.start_invers_kinematic.clicked.connect(self.calculate_inverse_kinematics)
 		# Connection button

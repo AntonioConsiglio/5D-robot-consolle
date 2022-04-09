@@ -1,7 +1,5 @@
 #include <Servo.h>
 #include <SoftwareSerial.h>
-
-
 Servo servo_b;
 Servo servo_1;
 Servo servo_2;

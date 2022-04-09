@@ -8,7 +8,7 @@ import serial.tools.list_ports as p
 import sys
 import os
 import matplotlib.pyplot as plt
-import robot
+import applicationLib.robotLib.robot as robot
 
 my_robot = robot.Robot('arduino_robot')
 

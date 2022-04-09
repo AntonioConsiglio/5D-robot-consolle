@@ -2,6 +2,8 @@ import depthai as dhai
 import cv2
 import numpy as np
 
+ZmmConversion = 1000
+
 # Help functions
 
 def configure_depth_proprieties(left,right,depth):
@@ -16,7 +18,7 @@ def configure_depth_proprieties(left,right,depth):
     # Options: MEDIAN_OFF, KERNEL_3x3, KERNEL_5x5, KERNEL_7x7 (default)
     depth.initialConfig.setMedianFilter(dhai.MedianFilter.KERNEL_7x7)
     depth.setLeftRightCheck(True)
-    depth.setExtendedDisparity(False)
+    depth.setExtendedDisparity(True)
     depth.setSubpixel(False)
 
     config = depth.initialConfig.get()
@@ -67,10 +69,13 @@ class DeviceManager():
         depth = self.pipeline.create(dhai.node.StereoDepth)
         xout_depth = self.pipeline.create(dhai.node.XLinkOut)
         xout_depth.setStreamName("depth")
+        xout_disparity = self.pipeline.create(dhai.node.XLinkOut)
+        xout_disparity.setStreamName("disparity")
         configure_depth_proprieties(monoLeft,monoRight,depth)
         monoLeft.out.link(depth.left)
         monoRight.out.link(depth.right)
-        depth.disparity.link(xout_depth.input)
+        depth.disparity.link(xout_disparity.input)
+        depth.depth.link(xout_depth.input)
     
     def _configure_image_manipulator(self):
         manip = self.pipeline.create(dhai.node.ImageManip)
@@ -106,6 +111,7 @@ class DeviceManager():
     def _set_output_queue(self):
         self.q_rgb = self.device_.getOutputQueue("rgb",maxSize = 1,blocking = False)
         self.q_depth = self.device_.getOutputQueue("depth",maxSize = 1,blocking = False)
+        self.q_disparity = self.device_.getOutputQueue("disparity",maxSize=1,blocking=False)
         if self.nn_active:
             self.q_nn = self.device_.getOutputQueue('neural',maxSize=1,blocking=False)
             self.q_nn_input = self.device_.getOutputQueue('neural_input',maxSize=1,blocking=False)
@@ -129,6 +135,18 @@ class DeviceManager():
             score = detection[1]
             cv2.rectangle(image,(xmin,ymin),(xmax,ymax),(255,255,255),2)
             cv2.putText(image,f'{label}: {round(score*100,2)} %',(xmin,ymin-10),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+    
+    def _convert_depth(self,depth):
+        depth = depth.flatten()/ZmmConversion
+        depth = np.reshape(depth,(480,640))
+        return depth
+    
+    def _determinate_object_depth(self,depth,detections):
+        for detection in detections:
+            xmin,ymin,xmax,ymax = detection[2]
+            useful_value = depth[ymin:ymax,xmin:xmax]
+            avg_depth_value = np.mean(useful_value)
+            print(f'The object {detection[0]} has an average depth of: {avg_depth_value} m')
 
     def poll_for_frames(self):
 
@@ -138,7 +156,8 @@ class DeviceManager():
 
         while not state_frame:
             rgb_foto = self.q_rgb.tryGet()
-            depth_frame = self.q_depth.get()
+            depth = self.q_depth.get()
+            disparity_frame = self.q_disparity.get()
             nn_foto = None
             if self.nn_active:
                 nn_foto = self.q_nn_input.tryGet()
@@ -148,15 +167,17 @@ class DeviceManager():
                 else:
                     detections = None
 
-            if rgb_foto is not None and depth_frame is not None:
+            if rgb_foto is not None and depth is not None:
 
                 frames['color_image'] = rgb_foto.getCvFrame()
-                frames['depth_image'] = depth_frame.getFrame() #*(255 /self.max_disparity)).astype(np.uint8)
+                frames['depth'] = self._convert_depth(depth.getFrame()) 
+                frames['disparity_image'] = disparity_frame.getFrame()#*(255 /self.max_disparity)).astype(np.uint8)
                 if nn_foto is not None:
                     frames['nn_input'] = nn_foto.getCvFrame()
                     if detections is not None:
                         detections = self._normalize_detections(detections)
                         self._write_detections_on_image(frames['color_image'],detections)
+                        self._determinate_object_depth(frames['depth'],detections)
                 state_frame = True
                 return state_frame,frames
             else:
@@ -173,7 +194,7 @@ if __name__ == '__main__':
         stato,frames = cam.poll_for_frames()
         if stato:
             cv2.imshow('frame',frames['color_image'])
-            cv2.imshow('depth',frames['depth_image'])
+            cv2.imshow('disparity map',frames['disparity_image'])
             if cv2.waitKey(1) == ord('q'):
                 break
 

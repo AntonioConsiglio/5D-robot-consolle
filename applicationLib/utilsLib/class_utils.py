@@ -5,7 +5,7 @@ from PyQt5.QtWidgets import QCheckBox
 import cv2
 import numpy as np
 
-from .telecamera import DeviceManager
+from ..cameraLib import DeviceManager
 
 import serial
 import time

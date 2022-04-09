@@ -6,9 +6,9 @@ from PyQt5.QtWidgets import QApplication,QMainWindow
 from PyQt5.QtGui import QImage,QPixmap
 from PyQt5.QtCore import pyqtSignal
 
-from .class_utils import *
 from .widget_styles import *
-from .functions_utils import *
+from ..utilsLib.class_utils import *
+from ..utilsLib.functions_utils import *
 
 # baud_rates = ['None','9600','19200','38400']
 serial_port = 1

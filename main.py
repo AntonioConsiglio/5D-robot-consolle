@@ -2,8 +2,9 @@ import sys
 #3rd party
 from PyQt5.QtWidgets import QApplication
 #mine
-from application import MainWindow,ArduinoConnection
-from robot import Robot
+from applicationLib.hmiLib import MainWindow
+from applicationLib.utilsLib import ArduinoConnection
+from applicationLib.robotLib import Robot
 
 
 

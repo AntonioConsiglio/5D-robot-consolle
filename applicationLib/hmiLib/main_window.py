@@ -30,7 +30,6 @@ class MainWindow(QMainWindow):
 		self.trd1 = self.trd2 = self.trd3 = None
 		self.thread_list = {'1':self.trd1,'2':self.trd2,'3':self.trd3}
 
-
 	def start_video(self,size = (640,480),fps = 30):
 		self.video = VideoCamera(size,fps,self.nn_box.isChecked())
 		self.video.update_image.connect(self.update_screen)
@@ -47,7 +46,6 @@ class MainWindow(QMainWindow):
 		self.socket_arduino = arduino
 		self.socket_arduino.connection_state.connect(lambda stato: self._change_button_color(self.connection_button,stato))
 		self.socket_arduino.reader.message_recived.connect(self._update_angles_view)
-		#self.socket_arduino.handler.sendmessage.connect(lambda messaggio: self.print_message(messaggio))
 	
 	def calculate_forward_kinematics(self,list_angles):
 		list_angles = robot_to_python_angles(list_angles)
@@ -76,7 +74,6 @@ class MainWindow(QMainWindow):
 		target = [self.x_pos,self.y_pos,self.z_pos]
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
 		self.__send_angles([j6,j5,j4,j3,j2],True)
-
 
 	def __send_angles(self,lista_angoli,inv_kine = False):
 
@@ -240,8 +237,6 @@ class MainWindow(QMainWindow):
 		self.y_pos = 0
 		self.z_pos = 0
 	
-
-
 	def _define_slots(self):
 		# Join1
 		self.menos1.pressed.connect(lambda: self.sto_premendo(b"1"))
@@ -303,7 +298,6 @@ class MainWindow(QMainWindow):
 				pass
 			self.video = None
 			self.update_screen(np.zeros((480,640,3)))
-
 
 
 if __name__ == '__main__':

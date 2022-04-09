@@ -1,6 +1,13 @@
+from tkinter import CURRENT
 import depthai as dhai
 import cv2
 import numpy as np
+import os
+
+CURRENT_FOLDER = os.getcwd()
+BLOB_FODLER  = os.path.join(CURRENT_FOLDER,"neuralNetwork")
+BLOB_NAME = "mobilenet-ssd_openvino_2021.2_6shave.blob"
+BLOB_PATH = os.path.join(BLOB_FODLER,BLOB_NAME)
 
 ZmmConversion = 1000
 
@@ -94,7 +101,7 @@ class DeviceManager():
         nnOut.setStreamName("neural")
         # define nn features
         nn.setConfidenceThreshold(0.5)
-        nn.setBlobPath("C:\\Users\\anton\\Desktop\\5D-robot-consolle\\neuralNetwork\\mobilenet-ssd_openvino_2021.2_6shave.blob")
+        nn.setBlobPath(BLOB_PATH)
         nn.setNumInferenceThreads(2)
         # Linking
         manip.out.link(nn.input)

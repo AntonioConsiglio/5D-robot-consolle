@@ -32,7 +32,7 @@ class MainWindow(QMainWindow):
 
 
 	def start_video(self,size = (640,480),fps = 30):
-		self.video = VideoCamera(size,fps)
+		self.video = VideoCamera(size,fps,self.nn_box.isChecked())
 		self.video.update_image.connect(self.update_screen)
 		self.video.start()
 

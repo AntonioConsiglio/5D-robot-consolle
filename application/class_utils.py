@@ -17,9 +17,10 @@ class VideoCamera(QThread):
     update_image = pyqtSignal(np.ndarray)
     camera_state = pyqtSignal(bool)
 
-    def __init__(self,size,fps):
+    def __init__(self,size,fps,nn_activate):
         super(VideoCamera,self).__init__()
-        self.camera = DeviceManager(size,fps)
+        self.nn_activate = nn_activate
+        self.camera = DeviceManager(size,fps,nn_mode = nn_activate)
         self.state = True
         
     def run(self):

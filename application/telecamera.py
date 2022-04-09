@@ -139,6 +139,7 @@ class DeviceManager():
         while not state_frame:
             rgb_foto = self.q_rgb.tryGet()
             depth_frame = self.q_depth.get()
+            nn_foto = None
             if self.nn_active:
                 nn_foto = self.q_nn_input.tryGet()
                 nn_detection = self.q_nn.tryGet()
@@ -157,11 +158,11 @@ class DeviceManager():
                         detections = self._normalize_detections(detections)
                         self._write_detections_on_image(frames['color_image'],detections)
                 state_frame = True
-                return state_frame,frames,detections
+                return state_frame,frames
             else:
                 frame_count += 1
                 print('empty_frame: ',frame_count)
-                return False,None,None
+                return False,None
 
 if __name__ == '__main__':
 
@@ -169,13 +170,10 @@ if __name__ == '__main__':
     cam.enable_device()
     frame = 0
     while True:
-        stato,frames,detections = cam.poll_for_frames()
+        stato,frames = cam.poll_for_frames()
         if stato:
             cv2.imshow('frame',frames['color_image'])
             cv2.imshow('depth',frames['depth_image'])
-            if 'nn_input' in frames:
-                cv2.imshow('nn_image',frames['nn_input'])
-                print(detections)
             if cv2.waitKey(1) == ord('q'):
                 break
 

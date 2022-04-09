@@ -27,7 +27,6 @@ class VideoCamera(QThread):
         while self.isRunning():
             stato,frames = self.camera.poll_for_frames()
             if stato:
-                #image = cv2.cvtColor(image,cv2.COLOR_BGR2RGB)
                 self.update_image.emit(frames['color_image'])
             if not self.state:
                 break

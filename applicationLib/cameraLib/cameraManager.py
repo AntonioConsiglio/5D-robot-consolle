@@ -1,5 +1,9 @@
 from tkinter import CURRENT
-import depthai as dhai
+try:
+    import depthai as dhai
+except:
+    print('depthai library is not installed!!')
+    print('Install depthai library ... "pip install depthai"')
 import cv2
 import numpy as np
 import os
@@ -156,7 +160,11 @@ class DeviceManager():
             print(f'The object {detection[0]} has an average depth of: {avg_depth_value} m')
 
     def poll_for_frames(self):
-
+        '''
+        - output:\n
+            frame_state: bool \n
+            frames: dict[color,depth,disparity]
+        '''
         frames = {}
         state_frame = False
         frame_count = 0

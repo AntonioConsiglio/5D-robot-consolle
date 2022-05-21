@@ -9,6 +9,7 @@ from PyQt5.QtCore import pyqtSignal
 from .widget_styles import *
 from ..utilsLib.class_utils import *
 from ..utilsLib.functions_utils import *
+from ..calibrationLib import docalibration
 
 # baud_rates = ['None','9600','19200','38400']
 serial_port = 1
@@ -41,6 +42,19 @@ class MainWindow(QMainWindow):
 		qimage = QImage(image,w,h,QImage.Format.Format_BGR888)
 		qpmap = QPixmap(qimage)
 		self.camera.setPixmap(qpmap)
+
+	def _start_autocalibration(self):
+		if self.video is not None:
+			self.video.calibration_state = True
+			self.video = VideoCamera((1920,1080),30,False,True)
+			self.video.start()
+			time.sleep(5)
+			intrinsic, extrinsic = self.video.get_intrisic_and_extrinsic()
+			docalibration(self.video.camera,intrinsic,extrinsic,[16,9,15],[0,0,1080,1920],shiftcalibration=[0,0,0])
+			self.video.calibration_state = True
+			time.sleep(4)
+			self.start_video()
+
 
 	def set_connection_socket(self,arduino):
 		self.socket_arduino = arduino
@@ -284,6 +298,8 @@ class MainWindow(QMainWindow):
 		self.refresh_button.clicked.connect(lambda: self.run_thread_task(funcion=update_com_port,cls=self))
 		# camera activate
 		self.toggle.stateChanged.connect(self.video_state)
+		# start autocalibration for camera
+		self.autocalibration.clicked.connect(self._start_autocalibration)
 
 	def video_state(self):
 

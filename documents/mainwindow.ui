@@ -2882,7 +2882,7 @@ background-color:white;
      <rect>
       <x>10</x>
       <y>510</y>
-      <width>471</width>
+      <width>581</width>
       <height>91</height>
      </rect>
     </property>
@@ -3002,6 +3002,36 @@ background-color:white;
        <width>30</width>
        <height>30</height>
       </size>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="autocalibration">
+     <property name="geometry">
+      <rect>
+       <x>410</x>
+       <y>20</y>
+       <width>121</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton
+{
+border: 2px sunken;
+border-radius:15px;
+background-color:#6495ED;
+
+}
+QPushButton:hover
+{
+background-color:#00FFFF;
+}
+QPushButton:pressed
+{
+background-color:white;
+}</string>
+     </property>
+     <property name="text">
+      <string>Auto-Calibration</string>
      </property>
     </widget>
    </widget>

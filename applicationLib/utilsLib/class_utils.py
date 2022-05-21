@@ -17,20 +17,31 @@ class VideoCamera(QThread):
     update_image = pyqtSignal(np.ndarray)
     camera_state = pyqtSignal(bool)
 
-    def __init__(self,size,fps,nn_activate):
+    def __init__(self,size,fps,nn_activate,calibration_mode = False):
         super(VideoCamera,self).__init__()
         self.nn_activate = nn_activate
-        self.camera = DeviceManager(size,fps,nn_mode = nn_activate)
+        self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=calibration_mode)
         self.state = True
+        self.calibration_state = False
+        self.calibration_mode = calibration_mode
         
     def run(self):
         self.camera.enable_device()
         while self.isRunning():
-            stato,frames = self.camera.poll_for_frames()
-            if stato:
-                self.update_image.emit(frames['color_image'])
-            if not self.state:
+            if not self.calibration_mode:
+                stato,frames = self.camera.poll_for_frames()
+                if stato:
+                    self.update_image.emit(frames['color_image'])
+            if not self.state or self.calibration_state:
                 break
+    
+    def get_intrisic_and_extrinsic(self):
+        '''
+        return the intrisics [rgb and left] and extrinsic [left to RGB]
+        '''
+        self.camera.get_intrinsic()
+        self.camera.get_extrinsic()
+        return self.camera.intrinsic_info,self.camera.extrinsic_info
 
     def stop(self):
         self.state = False        

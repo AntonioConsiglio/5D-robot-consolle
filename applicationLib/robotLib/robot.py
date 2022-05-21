@@ -63,7 +63,9 @@ class Robot(Chain):
                 origin_orientation=[-1.57,-1.57,-1.57],
                 rotation=[0,0,0]
             ),
-        ])
+        ],
+        active_links_mask=[0,1,1,1,1,1,1])
+        
         return my_arm_chain
 
     def compute_inverse_kinematics(self,target_position):

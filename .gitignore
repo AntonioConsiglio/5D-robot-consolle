@@ -2,9 +2,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-OLD/
+*OLD/
 
-neuralNetwork/
+*neuralNetwork/
 
 camera_calibration.json
 roi_2D.json

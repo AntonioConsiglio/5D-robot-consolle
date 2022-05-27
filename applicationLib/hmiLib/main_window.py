@@ -4,7 +4,7 @@ from threading import Thread
 from PyQt5.uic import loadUi
 from PyQt5.QtWidgets import QApplication,QMainWindow
 from PyQt5.QtGui import QImage,QPixmap
-from PyQt5.QtCore import pyqtSignal
+from PyQt5.QtCore import pyqtSignal,pyqtSlot
 
 from .widget_styles import *
 from ..utilsLib.class_utils import *
@@ -43,6 +43,7 @@ class MainWindow(QMainWindow):
 		qpmap = QPixmap(qimage)
 		self.camera.setPixmap(qpmap)
 
+	@pyqtSlot()
 	def _start_autocalibration(self):
 		if self.video is not None:
 			self.video.calibration_state = True
@@ -55,7 +56,6 @@ class MainWindow(QMainWindow):
 			time.sleep(4)
 			self.start_video()
 
-
 	def set_connection_socket(self,arduino):
 		self.socket_arduino = arduino
 		self.socket_arduino.connection_state.connect(lambda stato: self._change_button_color(self.connection_button,stato))
@@ -67,6 +67,7 @@ class MainWindow(QMainWindow):
 		self.x_pos, self.y_pos, self.z_pos = tm[:3,3]
 		self.update_xyz_lcd() 
 
+	@pyqtSlot()
 	def calculate_inverse_kinematics(self):
 		self.x_pos = int(self.x_edit.text().strip())
 		self.y_pos = int(self.y_edit.text().strip())
@@ -75,7 +76,8 @@ class MainWindow(QMainWindow):
 		target = [self.x_pos,self.y_pos,self.z_pos]
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
 		self.__send_angles([j6,j5,j4,j3,j2],True)
-
+	
+	@pyqtSlot()
 	def calculate_inverse_kinematics_joystic(self,direction,qnt):
 
 		if direction == 'x':
@@ -112,10 +114,11 @@ class MainWindow(QMainWindow):
 
 	def set_robot_object(self,robot_object):
 		self.robot_object = robot_object
-
+	@pyqtSlot()
 	def is_relesed(self):
 		self.socket_arduino.send_data(b'0')
 
+	@pyqtSlot()
 	def sto_premendo(self,data):
 		self.socket_arduino.send_data(data)
 		print(data)
@@ -201,6 +204,7 @@ class MainWindow(QMainWindow):
 			button.setStyleSheet(self.BStyle.green_button)
 			button.setText('CONNECT')
 
+	@pyqtSlot()
 	def run_thread_task(self,**kwargs):
 		if self.trd1 is None:
 			self.trd1 = self.TaskThread(name='1',**kwargs)

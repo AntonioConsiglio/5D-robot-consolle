@@ -1,4 +1,6 @@
 import depthai as dhai
+from .pointclouds_utils.pointclouds_manager import PointsCloudManager
+from ..calibrationLib.calibration_function import load_calibration_json,check_calibration_exist
 
 ############################ RGB SENSOR CONFIGURATION FUNCTIONS ############################
 
@@ -97,3 +99,16 @@ def configure_depth_proprieties(left,right,depth,calibration):
 	config.postProcessing.thresholdFilter.maxRange = 650
 	config.postProcessing.decimationFilter.decimationFactor = 1
 	depth.initialConfig.set(config)
+
+	############################ POINTCLOUD MANAGER FUNCTIONS ############################
+
+def create_pointcloud_manager(id,calibrationInfo):
+
+	pointcloud_manager = PointsCloudManager(id)
+	check_calibration_exist()
+	calibration_info,roi_2D,viewROI = load_calibration_json()
+	pointcloud_manager.viewROI = viewROI
+	calibrationInfo.append(calibration_info)
+	pointcloud_manager.SetParameters(calibrationInfo,roi_2D,viewROI)
+
+	return pointcloud_manager

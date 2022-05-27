@@ -2882,7 +2882,7 @@ background-color:white;
      <rect>
       <x>10</x>
       <y>510</y>
-      <width>581</width>
+      <width>651</width>
       <height>91</height>
      </rect>
     </property>
@@ -3013,6 +3013,15 @@ background-color:white;
        <height>51</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+       <strikeout>false</strikeout>
+       <kerning>true</kerning>
+      </font>
+     </property>
      <property name="styleSheet">
       <string notr="true">QPushButton
 {
@@ -3031,7 +3040,7 @@ background-color:white;
 }</string>
      </property>
      <property name="text">
-      <string>Auto-Calibration</string>
+      <string>CALIBRATE</string>
      </property>
     </widget>
    </widget>
@@ -3042,7 +3051,7 @@ background-color:white;
      <x>0</x>
      <y>0</y>
      <width>1297</width>
-     <height>21</height>
+     <height>26</height>
     </rect>
    </property>
   </widget>

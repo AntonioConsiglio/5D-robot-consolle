@@ -12,7 +12,7 @@ try:
 except:
 	print('Impossible to import Transformation class from ..calibrationLib.calibration_kabsch ')
 
-from .camera_funcion_utils import configure_rgb_sensor,configure_depth_sensor
+from .camera_funcion_utils import configure_rgb_sensor,configure_depth_sensor,create_pointcloud_manager
 
 CURRENT_FOLDER = os.getcwd()
 BLOB_FODLER  = os.path.join(CURRENT_FOLDER,"neuralNetwork")
@@ -31,12 +31,14 @@ def get_available_device():
 
 class IntrinsicParameters():
 	
-	def __init__(self,intrinsic_info):
+	def __init__(self,intrinsic_info,size):
 
 		self.fx = intrinsic_info[0][0]
 		self.cx = intrinsic_info[0][2]
 		self.fy = intrinsic_info[1][1]
 		self.cy = intrinsic_info[1][2]
+		self.h = size[1]
+		self.w = size[0]
 
 class DeviceManager():
 
@@ -54,6 +56,7 @@ class DeviceManager():
 		configure_rgb_sensor(self.pipeline,self.size,self.fps,self.nn_active,BLOB_PATH,self.calibration)
 		configure_depth_sensor(self.pipeline,self.calibration)
 
+
 	def enable_device(self):
 		self.device_ = dhai.Device(self.pipeline,usb2Mode=True)
 		if self.nn_active:
@@ -61,6 +64,10 @@ class DeviceManager():
 		else:
 			self.max_disparity = self.node_list[4].initialConfig.getMaxDisparity()
 		self._set_output_queue()
+		self.get_intrinsic()
+		self.get_extrinsic()
+		calibration_info = [self.intrinsic_info['RGB'],self.intrinsic_info['LEFT'],self.extrinsic_info]
+		self.pointcloud_manager = create_pointcloud_manager('first_camera',calibration_info)
 	
 	def _set_output_queue(self):
 		self.q_rgb = self.device_.getOutputQueue("rgb",maxSize = 1,blocking = False)
@@ -95,15 +102,27 @@ class DeviceManager():
 		depth = np.reshape(depth,(self.size[1],self.size[0]))
 		return depth
 	
-	def _determinate_object_depth(self,depth,detections):
+	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
+
+		xyz_points = points_cloud_data['XYZ_map_valid']
 		for detection in detections:
 			xmin,ymin,xmax,ymax = detection[2]
-			useful_value = depth[ymin:ymax,xmin:xmax]
-			avg_depth_value = np.mean(useful_value)
-			print(f'The object {detection[0]} has an average depth of: {avg_depth_value} m')
+			xcenter = (xmin+((xmax-xmin)//2))
+			ycenter = (ymin+((ymax-ymin)//2))
+			offset = 10
+			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
+			avg_pos_obj = np.round(np.mean(useful_value),3)
+			x,y,z = [i for i in avg_pos_obj]
+			cv2.addText(image_to_write,f'x: {x} m',(xcenter+5,ycenter-20),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+			cv2.addText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-10),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+			cv2.addText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
+			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} m')
+		
+		return None
 
 	def poll_for_frames(self):
-		'''
+		''' 
 		- output:\n
 			frame_state: bool \n
 			frames: dict[color,depth,disparity]
@@ -126,17 +145,29 @@ class DeviceManager():
 					detections = None
 
 			if rgb_foto is not None and depth is not None:
-
+				
+				state_frame = True
 				frames['color_image'] = rgb_foto.getCvFrame()
 				frames['depth'] = self._convert_depth(depth.getFrame()) 
 				frames['disparity_image'] = disparity_frame.getFrame()#*(255 /self.max_disparity)).astype(np.uint8)
+				self.pointcloud_manager.PointsCloudManagerStartCalculation(depth_image=frames['depth'],
+																		   color_image=frames['color_image'],
+																		   APPLY_ROI=False,
+																		   Kdecimation=1,
+																		   ZmmConversion=1000,
+																		   depth_threshold=0.001,
+																		   viewROI=self.pointcloud_manager.viewROI
+																		   )
+				while not self.pointcloud_manager.HasData():
+					pass
+				points_cloud_data = self.pointcloud_manager.PointsCloudManagerGetResult()
 				if nn_foto is not None:
 					frames['nn_input'] = nn_foto.getCvFrame()
 					if detections is not None:
 						detections = self._normalize_detections(detections)
 						self._write_detections_on_image(frames['color_image'],detections)
-						self._determinate_object_depth(frames['depth'],detections)
-				state_frame = True
+						_ = self._determinate_object_location(frames['color_image'],points_cloud_data,detections)
+				
 				return state_frame,frames
 			else:
 				frame_count += 1
@@ -148,8 +179,8 @@ class DeviceManager():
 		calibration_info = self.device_.readCalibration()
 		intr_info_rgb = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.RGB,resizeHeight=self.size[1],resizeWidth=self.size[0])
 		intr_info_left = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.LEFT,)
-		self.intrinsic_info['RGB'] = IntrinsicParameters(intr_info_rgb)
-		self.intrinsic_info['LEFT'] = IntrinsicParameters(intr_info_left)
+		self.intrinsic_info['RGB'] = IntrinsicParameters(intr_info_rgb,self.size)
+		self.intrinsic_info['LEFT'] = IntrinsicParameters(intr_info_left,self.size)
 
 	def get_extrinsic(self):
 		calibration_info = self.device_.readCalibration()
@@ -161,8 +192,6 @@ if __name__ == '__main__':
 	get_available_device()
 	cam = DeviceManager((640,480),30,nn_mode=False)
 	cam.enable_device()
-	# cam.get_intrinsic()
-	# cam.get_extrinsic()
 
 	frame = 0
 	while True:

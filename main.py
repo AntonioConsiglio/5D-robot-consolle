@@ -1,14 +1,14 @@
 import sys
 #3rd party
 from PyQt5.QtWidgets import QApplication
+import numpy as np
 #mine
 from applicationLib.hmiLib import MainWindow
 from applicationLib.utilsLib import ArduinoConnection
 from applicationLib.robotLib import Robot
 
+def main():
 
-
-if __name__ == '__main__':
     app = QApplication(sys.argv)
     root = MainWindow()
 
@@ -20,3 +20,9 @@ if __name__ == '__main__':
 
     root.show()
     app.exec_()
+
+if __name__ == '__main__':
+    
+    main()
+
+    

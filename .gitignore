@@ -2,7 +2,15 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-__vscode__/
-launch.json
+OLD/
+
+neuralNetwork/
+
+camera_calibration.json
+roi_2D.json
+
+
+
+
 
 

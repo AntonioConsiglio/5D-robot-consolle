@@ -2,12 +2,18 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-*OLD/
+# FOLDER
+.vscode/
+OLD/
+neuralNetwork/
 
-*neuralNetwork/
-
+# FILES
 camera_calibration.json
 roi_2D.json
+chessboard.png
+
+#PYTHON FILES
+prova_deco.py
 
 
 

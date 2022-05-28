@@ -77,7 +77,6 @@ class MainWindow(QMainWindow):
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
 		self.__send_angles([j6,j5,j4,j3,j2],True)
 	
-	@pyqtSlot()
 	def calculate_inverse_kinematics_joystic(self,direction,qnt):
 
 		if direction == 'x':
@@ -118,7 +117,6 @@ class MainWindow(QMainWindow):
 	def is_relesed(self):
 		self.socket_arduino.send_data(b'0')
 
-	@pyqtSlot()
 	def sto_premendo(self,data):
 		self.socket_arduino.send_data(data)
 		print(data)

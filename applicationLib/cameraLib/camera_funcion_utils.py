@@ -1,6 +1,9 @@
 import depthai as dhai
-from .pointclouds_utils.pointclouds_manager import PointsCloudManager
-from ..calibrationLib.calibration_function import load_calibration_json,check_calibration_exist
+try:
+	from .pointclouds_utils.pointclouds_manager import PointsCloudManager
+	from ..calibrationLib.calibration_function import load_calibration_json,check_calibration_exist
+except:
+	print('PointsCloudManager not loaded within calibration functions')
 
 ############################ RGB SENSOR CONFIGURATION FUNCTIONS ############################
 

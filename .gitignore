@@ -15,6 +15,9 @@ chessboard.png
 #PYTHON FILES
 prova_deco.py
 
+# BATCH FILES
+*.bat
+
 
 
 

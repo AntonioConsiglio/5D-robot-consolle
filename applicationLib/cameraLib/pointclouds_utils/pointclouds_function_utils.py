@@ -1,10 +1,11 @@
 import numpy as np
 import time
+import ptvsd
 
 from ...calibrationLib.calibration_kabsch import Transformation
 
 def CalculatePointsCloudParameters(calibration_info, roi_2D, viewROIcoords):
-	
+	#ptvsd.debug_this_thread()
 	depth_intrinsics = calibration_info[1]
 	color_intrinsics = calibration_info[0]
 	depth2color_extrinsics_mat = calibration_info[2]
@@ -13,7 +14,7 @@ def CalculatePointsCloudParameters(calibration_info, roi_2D, viewROIcoords):
 	h = depth_intrinsics.h
 
 	depth2color_trans = depth2color_extrinsics_mat# Transformation(trasformation_mat = depth2color_extrinsics_mat)
-	camera2world_mat = Transformation(trasformation_mat = camera2world_mat)
+	#camera2world_mat = Transformation(trasformation_mat = camera2world_mat)
 
 	nx = np.linspace(0, w-1, w)
 	ny = np.linspace(0, h-1, h)
@@ -36,6 +37,7 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 		pars = parameters based on CalculatePointsCloudParameters
 		addinfo = dizionario proveniente dalla captazione di eventi da tastiera \n durante il running del codice per visualizzare o no qualcosa.
 	'''
+	ptvsd.debug_this_thread()
 	color_intrinsics, depth2color_trans, cam2world_mat, roi_2D, x_norm, y_norm, w, h, viewROI_map = pars
 	if APPLY_ROI:
 		viewROI_map_color = viewROI_map.reshape((h,w))
@@ -56,7 +58,7 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 		filter_valid = np.nonzero(np.logical_and(z > 0, z < 5000) & viewROI_map)[0]
 	else:
 		#filter_valid = np.nonzero(np.logical_and(z > 0, z < 5000))[0]
-		filter_valid = np.nonzero(np.logical_and(z > 0, z < 650))[0]
+		filter_valid = np.nonzero(np.logical_and(z > 0, z < 0.650))[0]
 
 
 	if Kdecimation > 1:
@@ -64,7 +66,7 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 		filter_valid = filter_valid[:size].reshape(-1,Kdecimation).max(1) 
 
 	# filter by valid points and calculate x,y,z coords
-	z = z[filter_valid] / ZmmConversion # 1000 conversione in metri
+	z = z[filter_valid]/ZmmConversion # 1000 conversione in metri
 	# Ricavo la x che avevamo normalizzato in precedenza con la z
 	x = np.multiply(x_norm[filter_valid],z)
 	# Ricavo la y che era stata normalizzata in precedenza con la z (o meglio era stata normalizzata secondo la focal lenth)
@@ -72,11 +74,12 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 	# compose the xyz array
 	point_cloud_xyz = np.asanyarray((x,y,z))
 
+	
 	#convert point from camera coords to world coords
 	XYZ_world_cloud_valid = cam2world_mat.apply_transformation(point_cloud_xyz)
 
 	# calculate points index based on z. The z coord direction in pointing to lower, so coords shall be negative
-	filter0 = XYZ_world_cloud_valid[2, :] <-depth_threshold[device]
+	filter0 = XYZ_world_cloud_valid[2, :] <-depth_threshold
 	XYZ_world_cloud_valid = XYZ_world_cloud_valid[:,filter0]
 	XYZ_cloud_valid = point_cloud_xyz[:,filter0]
 
@@ -100,8 +103,8 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 	y_RGB = np.divide(XYZ_cloud_valid_as_RGB[1,:],z_RGB)
 
 	# move to pixel coords (u, v)
-	v = (x_RGB * color_intrinsics.fx + color_intrinsics.ppx + 0.5).astype(np.int)
-	u = (y_RGB * color_intrinsics.fy + color_intrinsics.ppy + 0.5).astype(np.int)
+	v = (x_RGB * color_intrinsics.fx + color_intrinsics.cx).astype(int)
+	u = (y_RGB * color_intrinsics.fy + color_intrinsics.cy).astype(int)
 
 	filter = (v >= 0) & (v <= w - 1)
 
@@ -135,7 +138,7 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 	pointcloud_results['RGB_cloud_valid'] = RGB_cloud_valid
 	pointcloud_results['XYZ_map_valid'] = XYZ_map_valid
 	pointcloud_results['RGB_map_valid'] = RGB_map_valid
-	pointcloud_results['inittime'] = inittime
+	pointcloud_results['inittime'] = 0
 	pointcloud_results['addinfo'] = addinfo
 	pointcloud_results['dodetection'] = True
 

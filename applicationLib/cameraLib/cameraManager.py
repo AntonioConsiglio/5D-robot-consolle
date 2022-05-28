@@ -7,6 +7,11 @@ import cv2
 import numpy as np
 import os
 
+#import ptvsd
+
+# from _pydev_bundle import pydev_monkey_qt
+# pydev_monkey_qt.patch_qt('auto')
+
 try:
 	from ..calibrationLib.calibration_kabsch import Transformation 
 except:
@@ -103,7 +108,7 @@ class DeviceManager():
 		return depth
 	
 	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
-
+		#ptvsd.debug_this_thread()
 		xyz_points = points_cloud_data['XYZ_map_valid']
 		for detection in detections:
 			xmin,ymin,xmax,ymax = detection[2]
@@ -112,16 +117,18 @@ class DeviceManager():
 			offset = 10
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
 			avg_pos_obj = np.round(np.mean(useful_value),3)
-			x,y,z = [i for i in avg_pos_obj]
-			cv2.addText(image_to_write,f'x: {x} m',(xcenter+5,ycenter-20),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
-			cv2.addText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-10),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
-			cv2.addText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+			if avg_pos_obj != 0:
+				x,y,z = [i for i in avg_pos_obj]
+				cv2.addText(image_to_write,f'x: {x} m',(xcenter+5,ycenter-20),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+				cv2.addText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-10),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+				cv2.addText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
 			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} m')
 		
 		return None
 
 	def poll_for_frames(self):
+		#ptvsd.debug_this_thread()
 		''' 
 		- output:\n
 			frame_state: bool \n
@@ -178,7 +185,7 @@ class DeviceManager():
 		self.intrinsic_info = {}
 		calibration_info = self.device_.readCalibration()
 		intr_info_rgb = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.RGB,resizeHeight=self.size[1],resizeWidth=self.size[0])
-		intr_info_left = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.LEFT,)
+		intr_info_left = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.LEFT,resizeHeight=self.size[1],resizeWidth=self.size[0])
 		self.intrinsic_info['RGB'] = IntrinsicParameters(intr_info_rgb,self.size)
 		self.intrinsic_info['LEFT'] = IntrinsicParameters(intr_info_left,self.size)
 

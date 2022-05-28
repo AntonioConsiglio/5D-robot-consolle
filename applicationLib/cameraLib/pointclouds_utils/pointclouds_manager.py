@@ -39,7 +39,6 @@ class PointsCloudManager:
 				self._hasresult(result)
 
 	def _hasresult(self,results):
-		print('function called')
 		self.data = results
 		self._HasData = True
 

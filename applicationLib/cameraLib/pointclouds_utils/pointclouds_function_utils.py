@@ -1,8 +1,8 @@
 import numpy as np
 import time
-import ptvsd
+#import ptvsd
 
-from ...calibrationLib.calibration_kabsch import Transformation
+from ..calibrationLib.calibration_kabsch import Transformation
 
 def CalculatePointsCloudParameters(calibration_info, roi_2D, viewROIcoords):
 	#ptvsd.debug_this_thread()
@@ -37,7 +37,7 @@ def CalculatePointsCloud(depth_image, color_image, pars, addinfo,device,APPLY_RO
 		pars = parameters based on CalculatePointsCloudParameters
 		addinfo = dizionario proveniente dalla captazione di eventi da tastiera \n durante il running del codice per visualizzare o no qualcosa.
 	'''
-	ptvsd.debug_this_thread()
+	#ptvsd.debug_this_thread()
 	color_intrinsics, depth2color_trans, cam2world_mat, roi_2D, x_norm, y_norm, w, h, viewROI_map = pars
 	if APPLY_ROI:
 		viewROI_map_color = viewROI_map.reshape((h,w))

@@ -1,7 +1,7 @@
 import depthai as dhai
 try:
 	from .pointclouds_utils.pointclouds_manager import PointsCloudManager
-	from ..calibrationLib.calibration_function import load_calibration_json,check_calibration_exist
+	from .calibrationLib.calibration_function import load_calibration_json,check_calibration_exist
 except:
 	print('PointsCloudManager not loaded within calibration functions')
 

@@ -13,7 +13,7 @@ import os
 # pydev_monkey_qt.patch_qt('auto')
 
 try:
-	from ..calibrationLib.calibration_kabsch import Transformation 
+	from .calibrationLib.calibration_kabsch import Transformation 
 except:
 	print('Impossible to import Transformation class from ..calibrationLib.calibration_kabsch ')
 

@@ -9,7 +9,7 @@ from PyQt5.QtCore import pyqtSignal,pyqtSlot
 from .widget_styles import *
 from ..utilsLib.class_utils import *
 from ..utilsLib.functions_utils import *
-from ..calibrationLib import docalibration
+from ..cameraLib.calibrationLib import docalibration
 
 # baud_rates = ['None','9600','19200','38400']
 serial_port = 1

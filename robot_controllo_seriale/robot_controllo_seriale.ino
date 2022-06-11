@@ -180,72 +180,7 @@ void loop() {
   if (Serial.available() > 0); {
     dataIn = Serial.readString().toInt();
     Serial.write(dataIn);
-    if (dataIn == 1) {
-      m = 1;
-    }
-
-    if (dataIn == 2) {
-      m = 2;
-    }
-
-    if (dataIn == 3) {
-      m = 3;
-    }
-
-    if (dataIn == 4) {
-      m = 4;
-    }
-
-    if (dataIn == 5) {
-      m = 5;
-    }
-
-    if (dataIn == 6) {
-      m = 6;
-    }
-
-    if (dataIn == 7) {
-      m = 8;
-    }
-
-    if (dataIn == 8) {
-      m = 7;
-    }
-
-    if (dataIn == 9) {
-      m = 9;
-    }
-
-    if (dataIn == 10) {
-      m = 10;
-    }
-
-    if (dataIn == 11) {
-      m = 11;
-    }
-
-    if (dataIn == 12) {
-      m = 12;
-    }
-    if (dataIn == 13) {
-      m = 13;
-    }
-
-    if (dataIn == 14) {
-      m = 14;
-    }
-
-    if (dataIn == 15) {
-      m = 15;
-    }
-
-    if (dataIn == 16) {
-      m = 16;
-    }
-
-    if (dataIn == 17) {
-      m = 17;
-    }
+    m = dataIn;
     // move servomotors
 
     // motore PRESA

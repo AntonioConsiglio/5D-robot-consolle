@@ -177,7 +177,7 @@ class PoseEstimation:
 				validPoints = [False] * len(points2D[0])
 				for index in range(len(points2D[0])):
 					corner = points2D[:,index].flatten()
-					depth = get_depth_at_pixel(depth_frame, corner[0], corner[1])
+					depth = get_depth_at_pixel(depth_frame, corner[0], corner[1]) # this is possible because we are using an aligned depth map to the RGB
 					if depth != 0 and depth is not None:
 						validPoints[index] = True
 						[X,Y,Z] = convert_depth_pixel_to_metric_coordinate(depth, corner[0], corner[1], color_intrinsics)
@@ -237,19 +237,6 @@ class PoseEstimation:
 					retval[0] = False
 
 		return retval, corners3D, color_to_send
-
-
-	def find_chessboard_boundary_for_depth_image(self):
-		boundary = {}
-
-		for (serial, frameset) in self.frames.items():
-
-			depth_frame = post_process_depth_frame(frameset[rs.stream.depth])
-			infrared_frame = frameset[(rs.stream.infrared, 1)]
-			found_corners, points2D = cv_find_chessboard(depth_frame, infrared_frame, self.chessboard_params)
-			boundary[serial] = [np.floor(np.amin(points2D[0,:])).astype(int), np.floor(np.amax(points2D[0,:])).astype(int), np.floor(np.amin(points2D[1,:])).astype(int), np.floor(np.amax(points2D[1,:])).astype(int)]
-
-		return boundary
 
 	def transform_3Dcamera_to_3Ddeepth(self,points):
 	

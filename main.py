@@ -1,6 +1,6 @@
 import sys
 #3rd party
-from PyQt5.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication
 import numpy as np
 #mine
 from applicationLib.hmiLib import MainWindow

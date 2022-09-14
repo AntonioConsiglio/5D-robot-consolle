@@ -1,6 +1,5 @@
 from .pointclouds_function_utils import *
-import PyQt5
-from PyQt5.QtCore import QThread,pyqtSignal,QObject,pyqtProperty,Qt
+
 #import ptvsd
 
 class PointsCloudManager:

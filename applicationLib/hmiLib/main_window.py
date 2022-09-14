@@ -1,10 +1,9 @@
 import sys
 from threading import Thread
 
-from PyQt5.uic import loadUi
-from PyQt5.QtWidgets import QApplication,QMainWindow
-from PyQt5.QtGui import QImage,QPixmap
-from PyQt5.QtCore import pyqtSignal,pyqtSlot
+from PySide2.QtWidgets import QApplication,QMainWindow
+from PySide2.QtGui import QImage,QPixmap
+from PySide2.QtCore import Signal,Slot
 
 from .widget_styles import *
 from ..utilsLib.class_utils import *
@@ -15,7 +14,7 @@ from ..cameraLib.calibrationLib import docalibration
 serial_port = 1
 
 class MainWindow(QMainWindow):
-	movexyz = pyqtSignal([str,float]) # signal to move robot in xyz with virtual joystick [direction, quontity in mm]
+	movexyz = Signal([str,float]) # signal to move robot in xyz with virtual joystick [direction, quontity in mm]
 
 	def __init__(self):
 		super(MainWindow,self).__init__()
@@ -43,7 +42,6 @@ class MainWindow(QMainWindow):
 		qpmap = QPixmap(qimage)
 		self.camera.setPixmap(qpmap)
 
-	@pyqtSlot()
 	def _start_autocalibration(self):
 		if self.video is not None:
 			self.video.calibration_state = True
@@ -67,7 +65,6 @@ class MainWindow(QMainWindow):
 		self.x_pos, self.y_pos, self.z_pos = tm[:3,3]
 		self.update_xyz_lcd() 
 
-	@pyqtSlot()
 	def calculate_inverse_kinematics(self):
 		self.x_pos = int(self.x_edit.text().strip())
 		self.y_pos = int(self.y_edit.text().strip())
@@ -113,7 +110,7 @@ class MainWindow(QMainWindow):
 
 	def set_robot_object(self,robot_object):
 		self.robot_object = robot_object
-	@pyqtSlot()
+	
 	def is_relesed(self):
 		self.socket_arduino.send_data(b'0')
 
@@ -202,7 +199,7 @@ class MainWindow(QMainWindow):
 			button.setStyleSheet(self.BStyle.green_button)
 			button.setText('CONNECT')
 
-	@pyqtSlot()
+
 	def run_thread_task(self,**kwargs):
 		if self.trd1 is None:
 			self.trd1 = self.TaskThread(name='1',**kwargs)

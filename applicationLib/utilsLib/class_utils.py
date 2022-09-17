@@ -1,4 +1,5 @@
 #import ptvsd
+from ast import arg
 import PySide2
 from PySide2.QtUiTools import QUiLoader
 from PySide2.QtCore import QThread,Signal,QObject,Property,Qt,QMetaObject
@@ -10,30 +11,39 @@ from ..cameraLib import DeviceManager
 
 import serial
 import time
-from multiprocessing import Queue
-from threading import Thread
+import multiprocessing
+from multiprocessing import Process,Queue
 import math
 
-class VideoCamera(QThread):
-    update_image = Signal(np.ndarray)
-    camera_state = Signal(bool)
+class VideoCamera():
 
     def __init__(self,size,fps,nn_activate,calibration_mode = False):
         super(VideoCamera,self).__init__()
         self.nn_activate = nn_activate
-        self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=calibration_mode)
-        self.state = True
-        self.calibration_state = False
+        self.size = size
+        self.fps = fps
+        self.camera = None
         self.calibration_mode = calibration_mode
+        self.running_mode = multiprocessing.Value('i',0) #0 normal runtime / 1 calibration  runtime
+        self.imgqueue = Queue()
+        self.stoqueue = Queue()
+        self.p = Process(name='DeviceManager',target = self.run,args = [self.size,self.fps,self.nn_activate,self.running_mode,self.stoqueue,self.imgqueue])
+        self.p.start()
         
-    def run(self):
+    def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue):
+        self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
         self.camera.enable_device()
-        while self.isRunning():
-            if not self.calibration_mode:
+        self.calibration_state = False
+        self.running_mode = running_mode
+        while stoqueue.empty():
+
+            if self.running_mode.value == 0:
                 stato,frames = self.camera.poll_for_frames()
+                    
                 if stato:
-                    self.update_image.emit(frames['color_image'])
-            if not self.state or self.calibration_state:
+                    self.imgqueue.put(frames['color_image'])
+                    
+            if not stoqueue.empty():
                 break
     
     def get_intrisic_and_extrinsic(self):
@@ -45,8 +55,31 @@ class VideoCamera(QThread):
         return self.camera.intrinsic_info,self.camera.extrinsic_info
 
     def stop(self):
-        self.state = False        
+        self.stoqueue.put(False)        
 
+class VideoHandler(QThread):
+
+    update_image = Signal(np.ndarray)
+    camera_state = Signal(bool)
+
+    def __init__(self,image_queue,eventstate):
+        super(VideoHandler,self).__init__()
+        self.runtime_state = eventstate 
+        self.image_queue = image_queue
+        self.state = True
+
+    def run(self):
+
+        while self.isRunning():
+            if self.runtime_state.value == 0: # no calibration - running mode
+                image = self.image_queue.get()
+                self.update_image.emit(image)
+
+            if not self.state or self.runtime_state == 1:
+                break
+
+    def stop(self):
+        self.state = False     
 
 class ArduinoConnection(QObject):
 

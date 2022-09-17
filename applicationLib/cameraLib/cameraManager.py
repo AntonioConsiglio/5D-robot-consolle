@@ -7,11 +7,6 @@ import cv2
 import numpy as np
 import os
 
-#import ptvsd
-
-# from _pydev_bundle import pydev_monkey_qt
-# pydev_monkey_qt.patch_qt('auto')
-
 try:
 	from .calibrationLib.calibration_kabsch import Transformation 
 except:
@@ -108,7 +103,7 @@ class DeviceManager():
 		return depth
 	
 	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
-		#ptvsd.debug_this_thread()
+
 		xyz_points = points_cloud_data['XYZ_map_valid']
 		for detection in detections:
 			xmin,ymin,xmax,ymax = detection[2]
@@ -128,7 +123,6 @@ class DeviceManager():
 		return None
 
 	def poll_for_frames(self):
-		#ptvsd.debug_this_thread()
 		''' 
 		- output:\n
 			frame_state: bool \n

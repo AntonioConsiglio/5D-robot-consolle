@@ -32,8 +32,9 @@ class MainWindow(QMainWindow):
 
 	def start_video(self,size = (640,480),fps = 30):
 		self.video = VideoCamera(size,fps,self.nn_box.isChecked())
-		self.video.update_image.connect(self.update_screen)
-		self.video.start()
+		self.videohandler = VideoHandler(self.video.imgqueue,self.video.running_mode)
+		self.videohandler.update_image.connect(self.update_screen)
+		self.videohandler.start()
 
 	def update_screen(self,image):
 
@@ -308,10 +309,12 @@ class MainWindow(QMainWindow):
 				self.start_video()
 		else:
 			self.video.stop()
-			self.video.update_image.disconnect()
-			while self.video.isRunning():
+			self.videohandler.stop()
+			self.videohandler.update_image.disconnect()
+			while self.videohandler.isRunning():
 				pass
 			self.video = None
+			self.videohandler = None
 			self.update_screen(np.zeros((480,640,3)))
 
 

@@ -11,7 +11,7 @@ def configure_rgb_sensor(pipeline,size,fps,nn_active,blob_path,calibration=False
 
 		cam_rgb = pipeline.create(dhai.node.ColorCamera)
 		cam_rgb.setResolution(dhai.ColorCameraProperties.SensorResolution.THE_1080_P)
-		if calibration:
+		if calibration.value == 1:
 			pass
 			#cam_rgb.initialControl.setManualFocus(130)
 		cam_rgb.setPreviewSize(size)
@@ -21,7 +21,7 @@ def configure_rgb_sensor(pipeline,size,fps,nn_active,blob_path,calibration=False
 		xout_rgb = pipeline.create(dhai.node.XLinkOut)
 		xout_rgb.setStreamName("rgb")
 		cam_rgb.preview.link(xout_rgb.input)
-		if nn_active:
+		if nn_active.value == 2:
 			manip,_= configure_image_manipulator(pipeline)
 			cam_rgb.preview.link(manip.inputImage)
 			configure_nn_node(manip,pipeline,blob_path)
@@ -63,7 +63,7 @@ def configure_depth_sensor(pipeline,calibration):
     xout_disparity = pipeline.create(dhai.node.XLinkOut)
     xout_disparity.setStreamName("disparity")
     configure_depth_proprieties(monoLeft,monoRight,depth,calibration)
-    if calibration:
+    if calibration.value == 1:
         depth.setDepthAlign(dhai.CameraBoardSocket.RGB)
     monoLeft.out.link(depth.left)
     monoRight.out.link(depth.right)
@@ -71,7 +71,7 @@ def configure_depth_sensor(pipeline,calibration):
     depth.depth.link(xout_depth.input)
 
 def configure_depth_proprieties(left,right,depth,calibration):
-	if not calibration:
+	if not calibration.value == 1:
 		left.setResolution(dhai.MonoCameraProperties.SensorResolution.THE_480_P)
 		left.setBoardSocket(dhai.CameraBoardSocket.LEFT)
 		right.setResolution(dhai.MonoCameraProperties.SensorResolution.THE_480_P)

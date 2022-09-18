@@ -220,6 +220,7 @@ class MainWindow(QMainWindow):
 
 		if name == '1':
 			print(self.trd1.isRunning())
+			self.trd1.exit()
 			del self.trd1
 			self.trd1 = None
 		elif name == '2':

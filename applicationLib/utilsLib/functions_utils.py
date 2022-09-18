@@ -16,7 +16,7 @@ def update_com_port(cls):
         cls.com_port.addItems(ports)
         return True
     else:
-        return False
+        return True
 
 def robot_to_python_angles(angles_list):
     angle_list = [0.0]

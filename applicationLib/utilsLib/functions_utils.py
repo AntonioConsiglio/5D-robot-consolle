@@ -12,6 +12,7 @@ def update_com_port(cls):
     ports =  enumerate_serial_ports()
     if ports is not None:
         # ports.insert(0,'None')
+        cls.com_port.clear()
         cls.com_port.addItems(ports)
         return True
     else:

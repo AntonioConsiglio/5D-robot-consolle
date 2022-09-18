@@ -12,10 +12,11 @@ def update_com_port(cls):
     ports =  enumerate_serial_ports()
     if ports is not None:
         # ports.insert(0,'None')
+        cls.com_port.clear()
         cls.com_port.addItems(ports)
         return True
     else:
-        return True
+        return False
 
 def robot_to_python_angles(angles_list):
     angle_list = [0.0]

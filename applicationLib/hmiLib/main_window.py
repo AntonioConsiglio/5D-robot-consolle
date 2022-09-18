@@ -3,7 +3,7 @@ from threading import Thread
 
 from PySide2.QtWidgets import QApplication,QMainWindow
 from PySide2.QtGui import QImage,QPixmap
-from PySide2.QtCore import Signal,Slot
+from PySide2.QtCore import Signal
 
 from .widget_styles import *
 from ..utilsLib.class_utils import *
@@ -203,17 +203,32 @@ class MainWindow(QMainWindow):
 	def run_thread_task(self,**kwargs):
 		if self.trd1 is None:
 			self.trd1 = self.TaskThread(name='1',**kwargs)
+			self.trd1.finished.connect(lambda : self._delete_thread('1'))
 			self.trd1.start()
 		elif self.trd2 is None:
 			self.trd2 = self.TaskThread(name='2',**kwargs)
+			self.trd2.finished.connect(lambda : self._delete_thread('2'))
 			self.trd2.start()
 		elif self.trd3 is None:
 			self.trd3 = self.TaskThread(name='3',**kwargs)
+			self.trd3.finished.connect(lambda : self._delete_thread('3'))
 			self.trd3.start()
 		else:
 			print('No threads available')
 
+	def _delete_thread(self,name):
+
+		if name == '1':
+			print(self.trd1.isRunning())
+			del self.trd1
+			self.trd1 = None
+		elif name == '2':
+			self.trd2 = None
+		elif name == '3':
+			self.trd3 = None
+
 	class TaskThread(QThread):
+		
 		def __init__(self,name=None,funcion=None,cls=None,args=None):
 			QThread.__init__(self)
 			self.cls = cls
@@ -227,12 +242,9 @@ class MainWindow(QMainWindow):
 			elif self.cls is not None and self.args is None:
 				state = self.func(self.cls)
 			if state:
-				if self.trd_name == '1':
-					self.cls.trd1 = None
-				elif self.trd_name == '2':
-					self.cls.trd2 = None
-				elif self.trd_name == '3':
-					self.cls.trd3 = None
+				self.finished.emit()
+			
+					
 
 	def _define_variables(self):
 		# angles variables

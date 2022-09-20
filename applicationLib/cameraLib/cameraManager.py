@@ -12,11 +12,12 @@ try:
 except:
 	print('Impossible to import Transformation class from ..calibrationLib.calibration_kabsch ')
 
-from .camera_funcion_utils import configure_rgb_sensor,configure_depth_sensor,create_pointcloud_manager
+from .camera_funcion_utils import configure_rgb_sensor,configure_depth_sensor,create_pointcloud_manager,visualise_Axes
 
 CURRENT_FOLDER = os.getcwd()
 BLOB_FODLER  = os.path.join(CURRENT_FOLDER,"neuralNetwork")
-BLOB_NAME = "mobilenet-ssd_openvino_2021.2_6shave.blob"
+#BLOB_NAME = "mobilenet-ssd_openvino_2021.2_6shave.blob"
+BLOB_NAME = "frozen_inference_graph_openvino_2021.4_6shave.blob"
 BLOB_PATH = os.path.join(BLOB_FODLER,BLOB_NAME)
 
 ZmmConversion = 1000
@@ -102,24 +103,28 @@ class DeviceManager():
 		depth = np.reshape(depth,(self.size[1],self.size[0]))
 		return depth
 	
-	def 	_determinate_object_location(self,image_to_write,points_cloud_data,detections):
+	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
 
 		xyz_points = points_cloud_data['XYZ_map_valid']
 		for detection in detections:
 			xmin,ymin,xmax,ymax = detection[2]
-			xcenter = (xmin+((xmax-xmin)//2))
-			ycenter = (ymin+((ymax-ymin)//2))
+			xcenter = ((xmin+xmax)//2)
+			ycenter = ((ymin+ymax)//2)
 			offset = 10
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
 			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
-			avg_pos_obj = np.round(np.mean(useful_value,axis=0),3)*1000
+			useful_value = useful_value[np.any(useful_value != 0,axis=1)]
+			if len(useful_value>1):
+				avg_pos_obj = (np.mean(useful_value,axis=0)*1000).astype(int)
+			else:
+				avg_pos_obj= (useful_value*1000).astype(int)
 			if not np.all(avg_pos_obj == 0):
 				x,y,z = avg_pos_obj.tolist()
-				cv2.putText(image_to_write,f"x: {x} m",(xcenter+5,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
-				cv2.putText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
-				cv2.putText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f"x: {x} mm",(xcenter+5,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f'y: {y} mm',(xcenter+5,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f'z: {z} mm',(xcenter+5,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
-			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} m')
+			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
 		
 		return None
 
@@ -153,6 +158,7 @@ class DeviceManager():
 				frames['depth'] = self._convert_depth(depth.getFrame()) 
 				frames['disparity_image'] = cv2.applyColorMap(disparity_frame.getFrame(),cv2.COLORMAP_JET)#*(255 /self.max_disparity)).astype(np.uint8)
 				if self.calibration.value == 0:
+					frames['color_image'] = visualise_Axes(frames['color_image'],self.pointcloud_manager.calibration_info)
 					self.pointcloud_manager.PointsCloudManagerStartCalculation(depth_image=frames['depth'],
 																		   color_image=frames['color_image'],
 																		   APPLY_ROI=False,
@@ -174,7 +180,8 @@ class DeviceManager():
 				return state_frame,frames
 			else:
 				frame_count += 1
-				print('empty_frame: ',frame_count)
+				if frame_count > 10:
+					print('empty_frame: ',frame_count)
 				return False,None
 
 	def get_intrinsic(self):

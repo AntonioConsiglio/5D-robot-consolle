@@ -138,7 +138,7 @@ class PoseEstimation:
 
 	def __init__(self, frames, intrinsic,extrinsic,chessboard_params):
 		assert(len(chessboard_params) == 3)
-		self.frames = frames[1]
+		self.frames = frames
 		self.intrinsic = intrinsic
 		self.deep_to_rgb_extrinsic = extrinsic
 		self.chessboard_params = chessboard_params		

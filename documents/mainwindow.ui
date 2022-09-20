@@ -38,11 +38,11 @@ background-color:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba
      <verstretch>0</verstretch>
     </sizepolicy>
    </property>
-   <widget class="QFrame" name="camera_frame">
+   <widget class="QTabWidget" name="camera_tab">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>10</y>
+      <y>0</y>
       <width>650</width>
       <height>500</height>
      </rect>
@@ -53,33 +53,56 @@ background-color:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba
       <verstretch>0</verstretch>
      </sizepolicy>
     </property>
-    <property name="frameShape">
-     <enum>QFrame::StyledPanel</enum>
+    <property name="currentIndex">
+     <number>1</number>
     </property>
-    <property name="frameShadow">
-     <enum>QFrame::Sunken</enum>
-    </property>
-    <property name="lineWidth">
-     <number>2</number>
-    </property>
-    <widget class="QLabel" name="camera">
-     <property name="geometry">
-      <rect>
-       <x>5</x>
-       <y>10</y>
-       <width>640</width>
-       <height>480</height>
-      </rect>
-     </property>
-     <property name="styleSheet">
-      <string notr="true">QLabel
+    <widget class="QWidget" name="Color" native="true">
+     <attribute name="title">
+      <string>COLOR</string>
+     </attribute>
+     <widget class="QLabel" name="color_frames">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>0</y>
+        <width>640</width>
+        <height>480</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel
 {
 	background-color:black;
 }</string>
-     </property>
-     <property name="text">
-      <string/>
-     </property>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="Depth">
+     <attribute name="title">
+      <string>DEPTH</string>
+     </attribute>
+     <widget class="QLabel" name="depth_frames">
+      <property name="geometry">
+       <rect>
+        <x>2</x>
+        <y>0</y>
+        <width>640</width>
+        <height>480</height>
+       </rect>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QLabel
+{
+	background-color:black;
+}</string>
+      </property>
+      <property name="text">
+       <string/>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QFrame" name="frame">
@@ -3051,7 +3074,7 @@ background-color:white;
      <x>0</x>
      <y>0</y>
      <width>1297</width>
-     <height>26</height>
+     <height>21</height>
     </rect>
    </property>
   </widget>

@@ -10,11 +10,13 @@ class PointsCloudManager:
 		self.receiver = None
 		self.stopq = None
 		self.viewROI = None
+		self.calibration_info = None
 		self.id = id
 		self._HasData = False
 		self.pars = None
 
 	def SetParameters(self, calibration_info,roi_2D,viewROI):
+		self.calibration_info = calibration_info
 		self.pars = CalculatePointsCloudParameters(calibration_info, roi_2D, viewROI)
 
 

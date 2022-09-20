@@ -26,16 +26,17 @@ def docalibration(device_manager,intrinsics_devices,extriniscs_device, chessboar
 		calibrated_device_count = 0
 
 		while calibrated_device_count < 1: #len(device_manager._available_devices)
-			frames = device_manager.poll_for_frames()
-			pose_estimator = PoseEstimation(frames, intrinsics_devices,extriniscs_device, chessboard_params)
-			transformation_result_kabsch, corners3D,immagine = pose_estimator.perform_pose_estimation()
-			#object_point, _ = pose_estimator.get_chessboard_corners_in3d()
-			calibrated_device_count = 0
+			state,frames = device_manager.poll_for_frames()
+			if state:
+				pose_estimator = PoseEstimation(frames, intrinsics_devices,extriniscs_device, chessboard_params)
+				transformation_result_kabsch, corners3D,immagine = pose_estimator.perform_pose_estimation()
+				#object_point, _ = pose_estimator.get_chessboard_corners_in3d()
+				calibrated_device_count = 0
 
-			if not transformation_result_kabsch[0]:
-				print("Place the chessboard on the plane where the object needs to be detected..")
-			else:
-				calibrated_device_count += 1
+				if not transformation_result_kabsch[0]:
+					print("Place the chessboard on the plane where the object needs to be detected..")
+				else:
+					calibrated_device_count += 1
 
 		# Save the transformation object for all devices in an array to use for measurements
 
@@ -53,6 +54,8 @@ def docalibration(device_manager,intrinsics_devices,extriniscs_device, chessboar
 		return corners3D
 	except Exception as e:
 		print(e)
+		print('docalibration function')
+		return False
 
 def check_calibration_exist(path = "./"):
 

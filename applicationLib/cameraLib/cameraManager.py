@@ -42,7 +42,7 @@ class IntrinsicParameters():
 
 class DeviceManager():
 
-	def __init__(self,size,fps,nn_mode,calibration_mode = False):
+	def __init__(self,size,fps,nn_mode,calibration_mode):
 		self.pipeline = dhai.Pipeline()
 		self.size = size
 		self.fps = fps
@@ -59,21 +59,21 @@ class DeviceManager():
 
 	def enable_device(self):
 		self.device_ = dhai.Device(self.pipeline,usb2Mode=True)
-		if self.nn_active:
+		if self.nn_active.value == 2:
 			self.max_disparity = self.node_list[8].initialConfig.getMaxDisparity()
 		else:
 			self.max_disparity = self.node_list[4].initialConfig.getMaxDisparity()
 		self._set_output_queue()
 		self.get_intrinsic()
 		self.get_extrinsic()
-		calibration_info = [self.intrinsic_info['RGB'],self.intrinsic_info['LEFT'],self.extrinsic_info]
+		calibration_info = [self.intrinsic_info['RGB'],self.intrinsic_info['RIGHT'],self.extrinsic_info]
 		self.pointcloud_manager = create_pointcloud_manager('first_camera',calibration_info)
 	
 	def _set_output_queue(self):
 		self.q_rgb = self.device_.getOutputQueue("rgb",maxSize = 1,blocking = False)
 		self.q_depth = self.device_.getOutputQueue("depth",maxSize = 1,blocking = False)
 		self.q_disparity = self.device_.getOutputQueue("disparity",maxSize=1,blocking=False)
-		if self.nn_active:
+		if self.nn_active.value == 2:
 			self.q_nn = self.device_.getOutputQueue('neural',maxSize=1,blocking=False)
 			self.q_nn_input = self.device_.getOutputQueue('neural_input',maxSize=1,blocking=False)
 	
@@ -102,7 +102,7 @@ class DeviceManager():
 		depth = np.reshape(depth,(self.size[1],self.size[0]))
 		return depth
 	
-	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
+	def 	_determinate_object_location(self,image_to_write,points_cloud_data,detections):
 
 		xyz_points = points_cloud_data['XYZ_map_valid']
 		for detection in detections:
@@ -111,12 +111,13 @@ class DeviceManager():
 			ycenter = (ymin+((ymax-ymin)//2))
 			offset = 10
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
-			avg_pos_obj = np.round(np.mean(useful_value),3)
-			if avg_pos_obj != 0:
-				x,y,z = [i for i in avg_pos_obj]
-				cv2.addText(image_to_write,f'x: {x} m',(xcenter+5,ycenter-20),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
-				cv2.addText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-10),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
-				cv2.addText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_PLAIN,1,(255,0,0),2)
+			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
+			avg_pos_obj = np.round(np.mean(useful_value,axis=0),3)*1000
+			if not np.all(avg_pos_obj == 0):
+				x,y,z = avg_pos_obj.tolist()
+				cv2.putText(image_to_write,f"x: {x} m",(xcenter+5,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f'y: {y} m',(xcenter+5,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f'z: {z} m',(xcenter+5,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
 			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} m')
 		
@@ -137,7 +138,7 @@ class DeviceManager():
 			depth = self.q_depth.get()
 			disparity_frame = self.q_disparity.get()
 			nn_foto = None
-			if self.nn_active:
+			if self.nn_active.value == 2:
 				nn_foto = self.q_nn_input.tryGet()
 				nn_detection = self.q_nn.tryGet()
 				if nn_detection is not None:
@@ -150,18 +151,19 @@ class DeviceManager():
 				state_frame = True
 				frames['color_image'] = rgb_foto.getCvFrame()
 				frames['depth'] = self._convert_depth(depth.getFrame()) 
-				frames['disparity_image'] = disparity_frame.getFrame()#*(255 /self.max_disparity)).astype(np.uint8)
-				self.pointcloud_manager.PointsCloudManagerStartCalculation(depth_image=frames['depth'],
+				frames['disparity_image'] = cv2.applyColorMap(disparity_frame.getFrame(),cv2.COLORMAP_JET)#*(255 /self.max_disparity)).astype(np.uint8)
+				if self.calibration.value == 0:
+					self.pointcloud_manager.PointsCloudManagerStartCalculation(depth_image=frames['depth'],
 																		   color_image=frames['color_image'],
 																		   APPLY_ROI=False,
 																		   Kdecimation=1,
-																		   ZmmConversion=1000,
+																		   ZmmConversion=1,
 																		   depth_threshold=0.001,
 																		   viewROI=self.pointcloud_manager.viewROI
 																		   )
-				while not self.pointcloud_manager.HasData():
-					pass
-				points_cloud_data = self.pointcloud_manager.PointsCloudManagerGetResult()
+					while not self.pointcloud_manager.HasData():
+						pass
+					points_cloud_data = self.pointcloud_manager.PointsCloudManagerGetResult()
 				if nn_foto is not None:
 					frames['nn_input'] = nn_foto.getCvFrame()
 					if detections is not None:
@@ -179,14 +181,18 @@ class DeviceManager():
 		self.intrinsic_info = {}
 		calibration_info = self.device_.readCalibration()
 		intr_info_rgb = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.RGB,resizeHeight=self.size[1],resizeWidth=self.size[0])
-		intr_info_left = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.LEFT,resizeHeight=self.size[1],resizeWidth=self.size[0])
+		intr_info_right = calibration_info.getCameraIntrinsics(dhai.CameraBoardSocket.RIGHT,resizeHeight=self.size[1],resizeWidth=self.size[0])
 		self.intrinsic_info['RGB'] = IntrinsicParameters(intr_info_rgb,self.size)
-		self.intrinsic_info['LEFT'] = IntrinsicParameters(intr_info_left,self.size)
+		self.intrinsic_info['RIGHT'] = IntrinsicParameters(intr_info_right,self.size)
 
 	def get_extrinsic(self):
 		calibration_info = self.device_.readCalibration()
-		extrin_info = calibration_info.getCameraExtrinsics(dhai.CameraBoardSocket.LEFT,dhai.CameraBoardSocket.RGB)
-		self.extrinsic_info = Transformation(trasformation_mat=np.array(extrin_info))
+		extrin_info = np.array(calibration_info.getCameraExtrinsics(dhai.CameraBoardSocket.RIGHT,dhai.CameraBoardSocket.RGB))
+		extrin_info[:,3] = extrin_info[:,3]/1000 
+		self.extrinsic_info = Transformation(trasformation_mat=extrin_info)
+
+	def get_intrisic_and_extrinsic(self):
+		return self.intrinsic_info,self.extrinsic_info
 
 if __name__ == '__main__':
 

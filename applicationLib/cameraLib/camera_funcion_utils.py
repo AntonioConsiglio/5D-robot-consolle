@@ -7,7 +7,7 @@ except:
 
 ############################ RGB SENSOR CONFIGURATION FUNCTIONS ############################
 
-def configure_rgb_sensor(pipeline,size,fps,nn_active,blob_path,calibration=False):
+def configure_rgb_sensor(pipeline,size,fps,nn_active,blob_path,calibration):
 
 		cam_rgb = pipeline.create(dhai.node.ColorCamera)
 		cam_rgb.setResolution(dhai.ColorCameraProperties.SensorResolution.THE_1080_P)

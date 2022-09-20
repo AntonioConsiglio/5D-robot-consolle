@@ -8,6 +8,7 @@ import numpy as np
 import config
 
 from ..cameraLib import DeviceManager
+from ..cameraLib.calibrationLib import docalibration
 
 import serial
 import time
@@ -17,261 +18,270 @@ import math
 
 class VideoCamera():
 
-    def __init__(self,size,fps,nn_activate,calibration_mode = False):
-        super(VideoCamera,self).__init__()
-        self.nn_activate = nn_activate
-        self.size = size
-        self.fps = fps
-        self.camera = None
-        self.calibration_mode = calibration_mode
-        self.running_mode = multiprocessing.Value('i',0) #0 normal runtime / 1 calibration  runtime
-        self.imgqueue = Queue()
-        self.stoqueue = Queue()
-        self.p = Process(name='DeviceManager',target = self.run,args = [self.size,self.fps,self.nn_activate,self.running_mode,self.stoqueue,self.imgqueue])
-        self.p.start()
-        
-    def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue):
-        self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
-        self.camera.enable_device()
-        self.calibration_state = False
-        self.running_mode = running_mode
-        while stoqueue.empty():
+	def __init__(self,size,fps,nn_activate,running_mode):
+		super(VideoCamera,self).__init__()
+		self.nn_activate = nn_activate
+		self.size = size
+		self.fps = fps
+		self.camera = None
+		self.running_mode = running_mode  #0 normal runtime / 1 calibration  runtime
+		self.imgqueue = Queue()
+		self.stoqueue = Queue()
+		self.calibration_state = Queue()
+		self.p = Process(name='DeviceManager',target = self.run,args = [self.size,self.fps,self.nn_activate,
+																		self.running_mode,self.stoqueue,
+																		self.imgqueue,self.calibration_state])
+		self.p.start()
+		
+	def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue,calibrationstate):
+		self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
+		self.camera.enable_device()
+		self.running_mode = running_mode
+		self.calibration_state = calibrationstate
 
-            if self.running_mode.value == 0:
-                stato,frames = self.camera.poll_for_frames()
-                    
-                if stato:
-                    self.imgqueue.put(frames['color_image'])
-                    
-            if not stoqueue.empty():
-                break
-    
-    def get_intrisic_and_extrinsic(self):
-        '''
-        return the intrisics [rgb and left] and extrinsic [left to RGB]
-        '''
-        self.camera.get_intrinsic()
-        self.camera.get_extrinsic()
-        return self.camera.intrinsic_info,self.camera.extrinsic_info
+		while stoqueue.empty():
 
-    def stop(self):
-        self.stoqueue.put(False)        
+			if self.running_mode.value == 0:
+				stato,frames = self.camera.poll_for_frames()
+					
+				if stato:
+					self.imgqueue.put(frames)
+			
+			if self.running_mode.value == 1:
+				intrinsic, extrinsic = self.camera.get_intrisic_and_extrinsic()
+				_ = docalibration(self.camera,intrinsic,extrinsic,[16,9,15],[0,0,1080,1920],shiftcalibration=[0,0,0])
+				self.stop()
+				self.calibration_state.put(True)
+
+			if not stoqueue.empty():
+				break
+	
+	def get_intrisic_and_extrinsic(self):
+		'''
+		return the intrisics [rgb and left] and extrinsic [left to RGB]
+		'''
+		self.camera.get_intrinsic()
+		self.camera.get_extrinsic()
+		return self.camera.intrinsic_info,self.camera.extrinsic_info
+
+	def stop(self):
+		self.stoqueue.put(False)        
 
 class VideoHandler(QThread):
 
-    update_image = Signal(np.ndarray)
-    camera_state = Signal(bool)
+	update_image = Signal(np.ndarray)
+	camera_state = Signal(bool)
 
-    def __init__(self,image_queue,eventstate):
-        super(VideoHandler,self).__init__()
-        self.runtime_state = eventstate 
-        self.image_queue = image_queue
-        self.state = True
+	def __init__(self,image_queue,eventstate):
+		super(VideoHandler,self).__init__()
+		self.runtime_state = eventstate 
+		self.image_queue = image_queue
+		self.state = True
 
-    def run(self):
+	def run(self):
 
-        while self.isRunning():
-            if self.runtime_state.value == 0: # no calibration - running mode
-                image = self.image_queue.get()
-                self.update_image.emit(image)
+		while self.isRunning():
+			if self.runtime_state.value == 0: # no calibration - running mode
+				image = self.image_queue.get()
+				self.update_image.emit(image)
 
-            if not self.state or self.runtime_state == 1:
-                break
+			if not self.state or self.runtime_state == 1:
+				break
 
-    def stop(self):
-        self.state = False     
+	def stop(self):
+		self.state = False     
 
 class ArduinoConnection(QObject):
 
-    connection_state = Signal(str)
+	connection_state = Signal(str)
 
-    def __init__(self):
-        super(ArduinoConnection,self).__init__()
-        self.arduino = None
-        self.data = None
-        self.reader = ArduinoReader()
-    
-    def set_connection_variable(self,porta,baud_rate):
-        porta = str(porta.currentText())
-        try:
-            baud_rate = int(baud_rate.currentText())
-        except:
-            baud_rate = None
-        self.porta = porta
-        self.baud_rate = baud_rate
+	def __init__(self):
+		super(ArduinoConnection,self).__init__()
+		self.arduino = None
+		self.data = None
+		self.reader = ArduinoReader()
+	
+	def set_connection_variable(self,porta,baud_rate):
+		porta = str(porta.currentText())
+		try:
+			baud_rate = int(baud_rate.currentText())
+		except:
+			baud_rate = None
+		self.porta = porta
+		self.baud_rate = baud_rate
 
-    def send_angles(self,angles_list,inverse_kinematics = False):
-        
-        if inverse_kinematics:
-            angles_list = [math.degrees(i) for i in angles_list]
-            angles_list_int = [int(i+90) for i in angles_list]
-            angles_list = [str(i) for i in angles_list_int]
-        else:
-            angles_list = [i.get().strip() for i in angles_list]
-            angles_int_list = [math.radians(int(i)-90) for i in angles_list]
-            
-        self.arduino.write(b'17')
-        time.sleep(0.05)
-        message = ','.join(angles_list)
-        self.arduino.write(message.encode('UTF-8'))
+	def send_angles(self,angles_list,inverse_kinematics = False):
+		
+		if inverse_kinematics:
+			angles_list = [math.degrees(i) for i in angles_list]
+			angles_list_int = [int(i+90) for i in angles_list]
+			angles_list = [str(i) for i in angles_list_int]
+		else:
+			angles_list = [i.get().strip() for i in angles_list]
+			angles_int_list = [math.radians(int(i)-90) for i in angles_list]
+			
+		self.arduino.write(b'17')
+		time.sleep(0.05)
+		message = ','.join(angles_list)
+		self.arduino.write(message.encode('UTF-8'))
 
-        return angles_list_int
+		return angles_list_int
 
-        # if not inverse_kinematics:    
-        #     angles_int_list.insert(0,0)
-        #     angles_int_list.append(0)
-        #     t_matrix = self.robot_obj.forward_kinematics(angles_int_list)
-        #     position = np.round(t_matrix[:3,3],0)
-        #     print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
-       
-    def send_data(self,data):
-        if self.arduino is not None:
-            self.arduino.write(data)
+		# if not inverse_kinematics:    
+		#     angles_int_list.insert(0,0)
+		#     angles_int_list.append(0)
+		#     t_matrix = self.robot_obj.forward_kinematics(angles_int_list)
+		#     position = np.round(t_matrix[:3,3],0)
+		#     print(f'x: {position[0]} mm y: {position[1]} mm z: {position[2]} mm')
+	   
+	def send_data(self,data):
+		if self.arduino is not None:
+			self.arduino.write(data)
 
-    def connection(self,porta,baud_rate):
-        if self.arduino is None:
-            self.set_connection_variable(porta,baud_rate)
-            if self.porta != 'None' and self.baud_rate is not None:
-                print(self.porta,self.baud_rate)
-                try:
-                    self.arduino = serial.Serial(port=self.porta,baudrate=self.baud_rate)
-                    print('Connesso !')
-                    self.connection_state.emit('connected')
-                    self.reader.set_serial(self.arduino)
-                    self.reader.connection_state = True
-                    self.reader.start()
-                    self.arduino.write(b'35')
-                except:
-                    print('no connection available')
-                    self.connection_state.emit('no_connection')
-            else:
-                print("select better the baud rate and com port")
-        else:
-            self.disconnet()
-    
-    def disconnet(self):
-        self.reader.connection_state = False
-        while self.reader.isRunning(): pass
-        self.arduino.close()
-        self.arduino = None
-        self.connection_state.emit('disconnected')
-        print('Disconnesso !')
-    
+	def connection(self,porta,baud_rate):
+		if self.arduino is None:
+			self.set_connection_variable(porta,baud_rate)
+			if self.porta != 'None' and self.baud_rate is not None:
+				print(self.porta,self.baud_rate)
+				try:
+					self.arduino = serial.Serial(port=self.porta,baudrate=self.baud_rate)
+					print('Connesso !')
+					self.connection_state.emit('connected')
+					self.reader.set_serial(self.arduino)
+					self.reader.connection_state = True
+					self.reader.start()
+					self.arduino.write(b'35')
+				except:
+					print('no connection available')
+					self.connection_state.emit('no_connection')
+			else:
+				print("select better the baud rate and com port")
+		else:
+			self.disconnet()
+	
+	def disconnet(self):
+		self.reader.connection_state = False
+		while self.reader.isRunning(): pass
+		self.arduino.close()
+		self.arduino = None
+		self.connection_state.emit('disconnected')
+		print('Disconnesso !')
+	
 
 class ArduinoReader(QThread):
-    message_recived =Signal(bytes)
-    def __init__(self,):
-        super(ArduinoReader,self).__init__()
-        self.socket = None
-        self.connection_state=None
-        self.first_send = True
+	message_recived =Signal(bytes)
+	def __init__(self,):
+		super(ArduinoReader,self).__init__()
+		self.socket = None
+		self.connection_state=None
+		self.first_send = True
 
-    def set_serial(self,arduino):
-        self.socket = arduino
-    
-    def set_first_send(self,condition):
-        self.first_send = condition
+	def set_serial(self,arduino):
+		self.socket = arduino
+	
+	def set_first_send(self,condition):
+		self.first_send = condition
 
-    def run(self):
-        #ptvsd.debug_this_thread()
-        while self.connection_state:
-            message = b''
-            while self.socket.in_waiting:
-                if  self.first_send:
-                    time.sleep(0.01)
-                    self.set_first_send(False)
-                lettera = self.socket.read(1)#.decode('utf-8')
-                if lettera != b'\r':
-                    if lettera != b'\n':
-                        message+=lettera  
-                    else:
-                        self.message_recived.emit(message)
-                        message =b''                
+	def run(self):
+		#ptvsd.debug_this_thread()
+		while self.connection_state:
+			message = b''
+			while self.socket.in_waiting:
+				if  self.first_send:
+					time.sleep(0.01)
+					self.set_first_send(False)
+				lettera = self.socket.read(1)#.decode('utf-8')
+				if lettera != b'\r':
+					if lettera != b'\n':
+						message+=lettera  
+					else:
+						self.message_recived.emit(message)
+						message =b''                
 
 
 class PyToggle(QCheckBox):
-    
-    def __init__(self,
-                parent = None,
-                width=60,
-                bg_color = "#777",
-                circle_color = "#000",
-                active_color = "#00BCff",
-                animation_curve = PySide2.QtCore.QEasingCurve.OutBounce,
-                ):
+	
+	def __init__(self,
+				parent = None,
+				width=60,
+				bg_color = "#777",
+				circle_color = "#000",
+				active_color = "#00BCff",
+				animation_curve = PySide2.QtCore.QEasingCurve.OutBounce,
+				):
 
-        super().__init__(parent)
-        self.setFixedSize(width,26)
-        self.setCursor(Qt.PointingHandCursor)
+		super().__init__(parent)
+		self.setFixedSize(width,26)
+		self.setCursor(Qt.PointingHandCursor)
 
-        # COLORS
+		# COLORS
 
-        self._bg_color = bg_color
-        self._circle_color = circle_color
-        self._active_color = active_color
+		self._bg_color = bg_color
+		self._circle_color = circle_color
+		self._active_color = active_color
 
-        # ANIMATION
+		# ANIMATION
 
-        self._circle_position = 3
-        self.animation = PySide2.QtCore.QPropertyAnimation(self,b"circle_position",self)
-        self.animation.setEasingCurve(animation_curve)
-        self.animation.setDuration(500)
+		self._circle_position = 3
+		self.animation = PySide2.QtCore.QPropertyAnimation(self,b"circle_position",self)
+		self.animation.setEasingCurve(animation_curve)
+		self.animation.setDuration(500)
 
-        # CONNECT STATE CHANGED
+		# CONNECT STATE CHANGED
 
-        self.stateChanged.connect(self.start_transition)
+		self.stateChanged.connect(self.start_transition)
 
-    @Property(float)
-    def circle_position(self):
-        return self._circle_position
-    
-    @circle_position.setter
-    def circle_position(self,pos):
-        self._circle_position = pos
-        self.update()
-    
-    def start_transition(self,value):
-        self.animation.stop()
-        if value:
-            self.animation.setEndValue(self.width() - 26)
-        else:
-            self.animation.setEndValue(3)
-        
-        self.animation.start()
-    
-    def hitButton(self, pos: PySide2.QtCore.QPoint):
-        return self.contentsRect().contains(pos)
+	@Property(float)
+	def circle_position(self):
+		return self._circle_position
+	
+	@circle_position.setter
+	def circle_position(self,pos):
+		self._circle_position = pos
+		self.update()
+	
+	def start_transition(self,value):
+		self.animation.stop()
+		if value:
+			self.animation.setEndValue(self.width() - 26)
+		else:
+			self.animation.setEndValue(3)
+		
+		self.animation.start()
+	
+	def hitButton(self, pos: PySide2.QtCore.QPoint):
+		return self.contentsRect().contains(pos)
 
-    
-    def paintEvent(self,e):
-        # SET PAINTER
+	
+	def paintEvent(self,e):
+		# SET PAINTER
 
-        p = PySide2.QtGui.QPainter(self)
-        p.setRenderHint(PySide2.QtGui.QPainter.Antialiasing)
+		p = PySide2.QtGui.QPainter(self)
+		p.setRenderHint(PySide2.QtGui.QPainter.Antialiasing)
 
-        # SET AS NO PEN
-        p.setPen(Qt.NoPen)
+		# SET AS NO PEN
+		p.setPen(Qt.NoPen)
 
-        rect = PySide2.QtCore.QRect(0,0,self.width(),self.height())
-        
-        if not self.isChecked():
-            # DRAW BG
-            p.setBrush(PySide2.QtGui.QColor(self._bg_color))
-            p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
+		rect = PySide2.QtCore.QRect(0,0,self.width(),self.height())
+		
+		if not self.isChecked():
+			# DRAW BG
+			p.setBrush(PySide2.QtGui.QColor(self._bg_color))
+			p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
 
-            # DRAW CIRCLE
-            p.setBrush(PySide2.QtGui.QColor(self._circle_color))
-            p.drawEllipse(3,3,21,21)
-        else:
-            # DRAW BG
-            p.setBrush(PySide2.QtGui.QColor(self._active_color))
-            p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
+			# DRAW CIRCLE
+			p.setBrush(PySide2.QtGui.QColor(self._circle_color))
+			p.drawEllipse(3,3,21,21)
+		else:
+			# DRAW BG
+			p.setBrush(PySide2.QtGui.QColor(self._active_color))
+			p.drawRoundedRect(0, 0, rect.width(), self.height(), self.height() / 2, self.height() / 2)
 
-            # DRAW CIRCLE
-            p.setBrush(PySide2.QtGui.QColor(self._circle_color))
-            p.drawEllipse(self.width() -26 ,3,21,21)
+			# DRAW CIRCLE
+			p.setBrush(PySide2.QtGui.QColor(self._circle_color))
+			p.drawEllipse(self.width() -26 ,3,21,21)
 
-        p.end()
+		p.end()
 
 
 class UiLoader(QUiLoader):
@@ -347,5 +357,5 @@ def loadUi(ui_file,parent):
 	return widget
 
 
-    
+	
 

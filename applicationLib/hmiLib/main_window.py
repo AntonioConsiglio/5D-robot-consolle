@@ -1,5 +1,5 @@
 import sys
-from threading import Thread
+import multiprocessing
 
 from PySide2.QtWidgets import QApplication,QMainWindow
 from PySide2.QtGui import QImage,QPixmap
@@ -8,7 +8,6 @@ from PySide2.QtCore import Signal
 from .widget_styles import *
 from ..utilsLib.class_utils import *
 from ..utilsLib.functions_utils import *
-from ..cameraLib.calibrationLib import docalibration
 
 # baud_rates = ['None','9600','19200','38400']
 serial_port = 1
@@ -25,34 +24,44 @@ class MainWindow(QMainWindow):
 		self._define_styles()
 		self._define_variables()
 		self._define_axis_variables()
+		self.detection_mode = multiprocessing.Value('i',0)
+		self.running_mode = multiprocessing.Value('i',0) #0 normal mode / 1 detection mode
 		self.connection_button.setStyleSheet(self.BStyle.green_button)
 		# self.baud_rate.addItems(baud_rates)
 		self.trd1 = self.trd2 = self.trd3 = None
 		self.thread_list = {'1':self.trd1,'2':self.trd2,'3':self.trd3}
 
 	def start_video(self,size = (640,480),fps = 30):
-		self.video = VideoCamera(size,fps,self.nn_box.isChecked())
-		self.videohandler = VideoHandler(self.video.imgqueue,self.video.running_mode)
+		if self.nn_box.isChecked():
+			self.detection_mode.value = 2
+		self.running_mode.value = 0
+		self.video = VideoCamera(size,fps,self.detection_mode,self.running_mode)
+		self.videohandler = VideoHandler(self.video.imgqueue,self.running_mode)
 		self.videohandler.update_image.connect(self.update_screen)
 		self.videohandler.start()
 
-	def update_screen(self,image):
+	def update_screen(self,images):
 
-		h,w,_ = image.shape
-		qimage = QImage(image,w,h,QImage.Format.Format_BGR888)
-		qpmap = QPixmap(qimage)
-		self.camera.setPixmap(qpmap)
+		for key,image in images.items():
+			if key == 'depth':
+				continue
+			h,w,_ = image.shape
+			qimage = QImage(image,w,h,QImage.Format.Format_BGR888)
+			qpmap = QPixmap(qimage)
+			if key == "color_image":
+				self.color_frames.setPixmap(qpmap)
+			elif "disparity" in key:
+				self.depth_frames.setPixmap(qpmap)
 
 	def _start_autocalibration(self):
 		if self.video is not None:
-			self.video.calibration_state = True
-			self.video = VideoCamera((1920,1080),30,False,True)
-			self.video.start()
-			time.sleep(5)
-			intrinsic, extrinsic = self.video.get_intrisic_and_extrinsic()
-			docalibration(self.video.camera,intrinsic,extrinsic,[16,9,15],[0,0,1080,1920],shiftcalibration=[0,0,0])
-			self.video.calibration_state = True
-			time.sleep(4)
+			self.video.stop()
+			time.sleep(0.3)
+			self.video = None
+			self.running_mode.value = 1
+			self.video = VideoCamera((1920,1080),30,self.detection_mode,self.running_mode)
+			_ = self.video.calibration_state.get()
+			time.sleep(1)
 			self.start_video()
 
 	def set_connection_socket(self,arduino):

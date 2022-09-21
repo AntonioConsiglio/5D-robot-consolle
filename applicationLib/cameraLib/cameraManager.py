@@ -114,17 +114,21 @@ class DeviceManager():
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
 			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
 			useful_value = useful_value[np.any(useful_value != 0,axis=1)]
-			if len(useful_value)>1:
+			if useful_value.shape[0] >1:
 				avg_pos_obj = (np.mean(useful_value,axis=0)*1000).astype(int)
 			else:
 				avg_pos_obj= (useful_value*1000).astype(int)
 			if not np.all(avg_pos_obj == 0):
-				x,y,z = avg_pos_obj.tolist()
-				cv2.putText(image_to_write,f"x: {x} mm",(xcenter+8,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
-				cv2.putText(image_to_write,f'y: {y} mm',(xcenter+8,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
-				cv2.putText(image_to_write,f'z: {z} mm',(xcenter+8,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+				try:
+					x,y,z = avg_pos_obj.tolist()
+					cv2.putText(image_to_write,f"x: {x} mm",(xcenter+8,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+					cv2.putText(image_to_write,f'y: {y} mm',(xcenter+8,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+					cv2.putText(image_to_write,f'z: {z} mm',(xcenter+8,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+				except Exception as e:
+					print(e)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
 			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
+
 		
 		return None
 

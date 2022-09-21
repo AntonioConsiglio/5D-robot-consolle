@@ -26,12 +26,11 @@ def docalibration(device_manager,intrinsics_devices,extriniscs_device, chessboar
 		calibrated_device_count = 0
 
 		while calibrated_device_count < 1: #len(device_manager._available_devices)
-			state,frames = device_manager.poll_for_frames()
+			state,frames = device_manager.pull_for_frames()
 			if state:
 				pose_estimator = PoseEstimation(frames, intrinsics_devices,extriniscs_device, chessboard_params)
 				transformation_result_kabsch, corners3D,immagine = pose_estimator.perform_pose_estimation()
 				#object_point, _ = pose_estimator.get_chessboard_corners_in3d()
-				calibrated_device_count = 0
 
 				if not transformation_result_kabsch[0]:
 					print("Place the chessboard on the plane where the object needs to be detected..")

@@ -42,7 +42,7 @@ class VideoCamera():
 		while stoqueue.empty():
 
 			if self.running_mode.value == 0:
-				stato,frames = self.camera.poll_for_frames()
+				stato,frames = self.camera.pull_for_frames()
 					
 				if stato:
 					self.imgqueue.put(frames)

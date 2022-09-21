@@ -96,7 +96,7 @@ class DeviceManager():
 			label = detection[0]
 			score = detection[1]
 			cv2.rectangle(image,(xmin,ymin),(xmax,ymax),(255,255,255),2)
-			cv2.putText(image,f'{label}: {round(score*100,2)} %',(xmin,ymin-10),cv2.FONT_HERSHEY_COMPLEX,1,(255,255,255),2)
+			cv2.putText(image,f'{label}: {round(score*100,2)} %',(xmin,ymin-10),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,255,255),2)
 	
 	def _convert_depth(self,depth):
 		depth = depth.flatten()/ZmmConversion
@@ -114,21 +114,21 @@ class DeviceManager():
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
 			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
 			useful_value = useful_value[np.any(useful_value != 0,axis=1)]
-			if len(useful_value>1):
+			if len(useful_value)>1:
 				avg_pos_obj = (np.mean(useful_value,axis=0)*1000).astype(int)
 			else:
 				avg_pos_obj= (useful_value*1000).astype(int)
 			if not np.all(avg_pos_obj == 0):
 				x,y,z = avg_pos_obj.tolist()
-				cv2.putText(image_to_write,f"x: {x} mm",(xcenter+5,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
-				cv2.putText(image_to_write,f'y: {y} mm',(xcenter+5,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
-				cv2.putText(image_to_write,f'z: {z} mm',(xcenter+5,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),1)
+				cv2.putText(image_to_write,f"x: {x} mm",(xcenter+8,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+				cv2.putText(image_to_write,f'y: {y} mm',(xcenter+8,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+				cv2.putText(image_to_write,f'z: {z} mm',(xcenter+8,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
 			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
 		
 		return None
 
-	def poll_for_frames(self):
+	def pull_for_frames(self):
 		''' 
 		- output:\n
 			frame_state: bool \n
@@ -209,7 +209,7 @@ if __name__ == '__main__':
 
 	frame = 0
 	while True:
-		stato,frames = cam.poll_for_frames()
+		stato,frames = cam.pull_for_frames()
 		if stato:
 			cv2.imshow('frame',frames['color_image'])
 			cv2.imshow('disparity map',frames['disparity_image'])

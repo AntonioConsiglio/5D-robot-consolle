@@ -1,5 +1,7 @@
 import serial.tools.list_ports as p
 import math
+import time
+import cv2
 
 def enumerate_serial_ports():
     """  return a iterator of serial (COM) ports existing on this computer.
@@ -28,3 +30,9 @@ def python_to_robot_angles(angles_list):
     angles_list = [math.degrees(i) for i in angles_list]
     angles_list = [int(i+90) for i in angles_list]
     return angles_list
+
+def write_fps(toc,frames):
+    tic =time.time()
+    fps = 1//(tic-toc)
+    cv2.putText(frames['color_image'],f"FPS: {fps}",(20,30),cv2.FONT_HERSHEY_COMPLEX,0.7,(255,255,0),2)
+    return frames

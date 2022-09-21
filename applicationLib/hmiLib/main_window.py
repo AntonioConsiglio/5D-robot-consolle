@@ -339,7 +339,7 @@ class MainWindow(QMainWindow):
 			self.videohandler = None
 			self.update_screen({'color_image': np.zeros((480,640,3))})
 	
-	def closeEvent(self):
+	def closeEvent(self,e):
 		self.video.stop()
 		self.videohandler.stop()
 

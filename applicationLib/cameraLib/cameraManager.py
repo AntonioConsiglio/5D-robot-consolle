@@ -6,6 +6,7 @@ except:
 import cv2
 import numpy as np
 import os
+import time
 
 try:
 	from .calibrationLib.calibration_kabsch import Transformation 
@@ -127,7 +128,7 @@ class DeviceManager():
 				except Exception as e:
 					print(e)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
-			print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
+			#print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
 
 		
 		return None
@@ -180,6 +181,7 @@ class DeviceManager():
 						detections = self._normalize_detections(detections)
 						self._write_detections_on_image(frames['color_image'],detections)
 						_ = self._determinate_object_location(frames['color_image'],points_cloud_data,detections)
+
 				
 				return state_frame,frames
 			else:

@@ -232,7 +232,7 @@ class PoseEstimation:
 				retval =[True, Transformation(rotation_matrix, translation_vector), points2D, rmsd_value]
 				print("RMS error for calibration is :", rmsd_value, "m")
 
-				if rmsd_value > 0.03:
+				if rmsd_value > 0.004:
 					print("RMS error for calibration is too high: retry")
 					retval[0] = False
 

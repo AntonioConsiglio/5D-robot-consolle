@@ -9,6 +9,7 @@ import config
 
 from ..cameraLib import DeviceManager
 from ..cameraLib.calibrationLib import docalibration
+from ..utilsLib.functions_utils import write_fps
 
 import serial
 import time
@@ -40,12 +41,13 @@ class VideoCamera():
 		self.calibration_state = calibrationstate
 
 		while stoqueue.empty():
-
+			toc = time.time()
 			if self.running_mode.value == 0:
 				stato,frames = self.camera.pull_for_frames()
 					
 				if stato:
-					self.imgqueue.put(frames)
+					self.imgqueue.put(write_fps(toc,frames))
+					
 			
 			if self.running_mode.value == 1:
 				intrinsic, extrinsic = self.camera.get_intrisic_and_extrinsic()
@@ -81,6 +83,7 @@ class VideoHandler(QThread):
 	def run(self):
 
 		while self.isRunning():
+			
 			if self.runtime_state.value == 0: # no calibration - running mode
 				image = self.image_queue.get()
 				self.update_image.emit(image)

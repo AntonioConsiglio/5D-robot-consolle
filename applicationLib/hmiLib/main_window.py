@@ -3,11 +3,13 @@ import multiprocessing
 
 from PySide2.QtWidgets import QApplication,QMainWindow
 from PySide2.QtGui import QImage,QPixmap
-from PySide2.QtCore import Signal
+from PySide2.QtCore import Signal,QThread
 
 from .widget_styles import *
-from ..utilsLib.class_utils import *
+from ..utilsLib.class_utils import PyToggle,loadUi
+from ..utilsLib.videomanager import VideoCamera,VideoHandler
 from ..utilsLib.functions_utils import *
+import numpy as np
 
 # baud_rates = ['None','9600','19200','38400']
 serial_port = 1

@@ -18,6 +18,8 @@ prova_deco.py
 # BATCH FILES
 *.bat
 
+#yoloR model
+yolor/
 
 
 

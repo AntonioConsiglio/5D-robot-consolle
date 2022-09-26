@@ -4,7 +4,7 @@ from PySide2.QtWidgets import QApplication
 import numpy as np
 #mine
 from applicationLib.hmiLib import MainWindow
-from applicationLib.utilsLib import ArduinoConnection
+from applicationLib.utilsLib.arduinomanager import ArduinoConnection
 from applicationLib.robotLib import Robot
 
 def main():

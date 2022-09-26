@@ -19,3 +19,6 @@ opt["agnostic_nms'"] = False
 opt['update'] = False
 opt['half'] = True
 opt = dotdict(opt)
+
+OAKD_CAMERA = False
+SOURCE = 0

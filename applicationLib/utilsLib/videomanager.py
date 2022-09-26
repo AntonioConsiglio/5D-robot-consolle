@@ -1,12 +1,13 @@
 from PySide2.QtCore import QThread,Signal
 import numpy as np
 import torch
+import cv2
 
 from ..cameraLib import DeviceManager
 from ..cameraLib.calibrationLib import docalibration
 from ..utilsLib.functions_utils import write_fps
 from .detectormanager import DetectionManager
-import cv2
+import config
 
 import time
 from multiprocessing import Process,Queue
@@ -55,13 +56,13 @@ class VideoCamera():
 		self.p.start()
 		
 	def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue,calibrationstate):
-		self.oakd_camera = False
+		self.oakd_camera = config.OAKD_CAMERA
 		try:
 			self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
 			self.camera.enable_device()
 			self.oakd_camera = True
 		except:
-			self.camera = cv2.VideoCapture(0)
+			self.camera = cv2.VideoCapture(config.SOURCE)
 		self.detector_manager = DetectionManager()
 		self.detector_manager.load_yolor_model()
 		self.running_mode = running_mode

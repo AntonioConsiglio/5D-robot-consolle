@@ -66,7 +66,7 @@ def configure_depth_sensor(pipeline,calibration):
     xout_disparity = pipeline.create(dhai.node.XLinkOut)
     xout_disparity.setStreamName("disparity")
     configure_depth_proprieties(monoLeft,monoRight,depth,calibration)
-    if calibration.value == 1:
+    if calibration.value == 2:
         depth.setDepthAlign(dhai.CameraBoardSocket.RGB)
     monoLeft.out.link(depth.left)
     monoRight.out.link(depth.right)
@@ -74,7 +74,7 @@ def configure_depth_sensor(pipeline,calibration):
     depth.depth.link(xout_depth.input)
 
 def configure_depth_proprieties(left,right,depth,calibration):
-	if not calibration.value == 1:
+	if not calibration.value == 2:
 		left.setResolution(dhai.MonoCameraProperties.SensorResolution.THE_480_P)
 		left.setBoardSocket(dhai.CameraBoardSocket.LEFT)
 		right.setResolution(dhai.MonoCameraProperties.SensorResolution.THE_480_P)
@@ -108,14 +108,18 @@ def configure_depth_proprieties(left,right,depth,calibration):
 
 	############################ POINTCLOUD MANAGER FUNCTIONS ############################
 
-def create_pointcloud_manager(id,calibrationInfo):
+def create_pointcloud_manager(id,calibrationInfo,first = True,pointcloud_manager=None):
 
-	pointcloud_manager = PointsCloudManager(id)
-	check_calibration_exist()
-	calibration_info,roi_2D,viewROI = load_calibration_json()
-	pointcloud_manager.viewROI = viewROI
-	calibrationInfo.append(calibration_info)
-	pointcloud_manager.SetParameters(calibrationInfo,roi_2D,viewROI)
+	if first:
+		pointcloud_manager = PointsCloudManager(id)
+	state = check_calibration_exist()
+	if state:
+		calibration_info,roi_2D,viewROI = load_calibration_json()
+		pointcloud_manager.viewROI = viewROI
+		calibrationInfo.append(calibration_info)
+		pointcloud_manager.SetParameters(calibrationInfo,roi_2D,viewROI)
+	else:
+		raise('no calibration exist')
 
 	return pointcloud_manager
 

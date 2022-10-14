@@ -7,7 +7,7 @@ class dotdict(dict):
 
 HOME_PATH = os.getcwd()
 opt = {}
-opt['weights'] = "./applicationLib\\yolor\\best_223.pt"
+opt['weights'] = "./applicationLib\\yolor\\best_223.pt" #"./applicationLib\\yolor\\best_overall.pt"
 opt["cfg"] = "./applicationLib\\yolor\\cfg\\yolor_p6.cfg"
 opt["data"] = "./applicationLib\\yolor\\data.yaml"
 opt['imgsz'] = 1280

@@ -33,6 +33,9 @@ def python_to_robot_angles(angles_list):
 
 def write_fps(toc,frames):
     tic =time.time()
-    fps = 1//(tic-toc)
+    try:
+        fps = 1//(tic-toc)
+    except ZeroDivisionError:
+        fps = 30
     cv2.putText(frames['color_image'],f"FPS: {fps}",(20,30),cv2.FONT_HERSHEY_COMPLEX,0.7,(255,255,0),2)
     return frames

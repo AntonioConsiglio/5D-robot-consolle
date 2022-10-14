@@ -26,7 +26,7 @@ def docalibration(device_manager,intrinsics_devices,extriniscs_device, chessboar
 		calibrated_device_count = 0
 
 		while calibrated_device_count < 1: #len(device_manager._available_devices)
-			state,frames = device_manager.pull_for_frames()
+			state,frames,_= device_manager.pull_for_frames()
 			if state:
 				pose_estimator = PoseEstimation(frames, intrinsics_devices,extriniscs_device, chessboard_params)
 				transformation_result_kabsch, corners3D,immagine = pose_estimator.perform_pose_estimation()
@@ -50,7 +50,7 @@ def docalibration(device_manager,intrinsics_devices,extriniscs_device, chessboar
 
 		save_calibration_json(transformation_device, roi_2D, path)
 
-		return corners3D
+		return transformation_device,roi_2D
 	except Exception as e:
 		print(e)
 		print('docalibration function')

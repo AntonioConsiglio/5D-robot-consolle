@@ -1,9 +1,11 @@
+from ast import Break
 from PySide2.QtCore import QThread,Signal
 import numpy as np
 import torch
 import cv2
 
 from ..cameraLib import DeviceManager
+from ..cameraLib.camera_funcion_utils import create_pointcloud_manager,visualise_Axes
 from ..cameraLib.calibrationLib import docalibration
 from ..utilsLib.functions_utils import write_fps
 from .detectormanager import DetectionManager
@@ -31,7 +33,11 @@ class VideoHandler(QThread):
 				image = self.image_queue.get()
 				self.update_image.emit(image)
 
-			if not self.state or self.runtime_state == 1:
+			if self.runtime_state.value == 1:
+				image = self.image_queue.get()
+				self.update_image.emit(image)
+			
+			if not self.state or self.runtime_state.value == 2:
 				break
 
 	def stop(self):
@@ -47,6 +53,8 @@ class VideoCamera():
 		self.fps = fps
 		self.camera = None
 		self.running_mode = running_mode  #0 normal runtime / 1 calibration  runtime
+		self.calibration_info = None
+		self.pointcloud_manager = None
 		self.imgqueue = Queue()
 		self.stoqueue = Queue()
 		self.calibration_state = Queue()
@@ -59,9 +67,11 @@ class VideoCamera():
 		self.oakd_camera = config.OAKD_CAMERA
 		try:
 			self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
-			self.camera.enable_device()
+			self.calibration_info = self.camera.enable_device()
+			self.pointcloud_manager = create_pointcloud_manager('first_camera',self.calibration_info)
 			self.oakd_camera = True
-		except:
+		except Exception as e:
+			print(e)
 			self.camera = cv2.VideoCapture(config.SOURCE)
 		self.detector_manager = DetectionManager()
 		self.detector_manager.load_yolor_model()
@@ -70,34 +80,54 @@ class VideoCamera():
 		
 		while stoqueue.empty():
 			toc = time.time()
-			if self.running_mode.value == 1:
+			if self.running_mode.value == 0: # only camera
 				stato = False
 				if self.oakd_camera:
-					stato,frames = self.camera.pull_for_frames()
+					stato,frames,_= self.camera.pull_for_frames()
 				else:
 					frames = {}
 					stato,frames['color_image'] = self.camera.read()
 				if stato:
+					frames['color_image'] = visualise_Axes(frames['color_image'],self.pointcloud_manager.calibration_info)
+					self.imgqueue.put(write_fps(toc,frames))
+			
+			if self.running_mode.value == 1: #external detecion mode
+				stato = False
+				points_cloud_data = None
+				if self.oakd_camera:
+					stato,frames,_ = self.camera.pull_for_frames()
+				else:
+					frames = {}
+					stato,frames['color_image'] = self.camera.read()
+				if stato:
+					frames['color_image'],detections = self.detector_manager.predict(frames['color_image'])
+					try:
+						points_cloud_data = self.pointcloud_manager.start_calculation(depth_image=frames['depth'],
+																	color_image=frames['color_image'],
+																	APPLY_ROI=False,
+																	Kdecimation=1,
+																	ZmmConversion=1,
+																	depth_threshold=0.001,
+																	viewROI=self.pointcloud_manager.viewROI
+																	)
+					except Exception as e:
+						print(e)
+					if points_cloud_data is not None:
+						cordinates = self.pointcloud_manager._determinate_object_location(frames['color_image'],
+																			 			  points_cloud_data,
+																			 			  detections)
 					self.imgqueue.put(write_fps(toc,frames))
 					
 			
-			if self.running_mode.value == 2:
+			if self.running_mode.value == 2: #calibration mode
 				intrinsic, extrinsic = self.camera.get_intrisic_and_extrinsic()
-				_ = docalibration(self.camera,intrinsic,extrinsic,[16,9,15],[0,0,1080,1920],shiftcalibration=[0,0,0])
+				_= docalibration(self.camera,intrinsic,extrinsic,[16,9,15],[0,0,1080,1920],shiftcalibration=[0,0,0])
+				self.pointcloud_manager = create_pointcloud_manager(_,self.calibration_info,False,self.pointcloud_manager)
 				self.stop()
 				self.calibration_state.put(True)
 			
-			if self.running_mode.value == 0:
-				stato = False
-				if self.oakd_camera:
-					stato,frames = self.camera.pull_for_frames()
-				else:
-					frames = {}
-					stato,frames['color_image'] = self.camera.read()
-				if stato:
-					image,detections = self.detector_manager.predict(frames['color_image'])
-					frames['color_image'] = image
-					self.imgqueue.put(write_fps(toc,frames))
+			if self.running_mode.value == 3: #Edge detection mode
+				pass
 
 			if not stoqueue.empty():
 				break

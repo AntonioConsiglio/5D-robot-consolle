@@ -69,8 +69,9 @@ class DeviceManager():
 		self.get_intrinsic()
 		self.get_extrinsic()
 		calibration_info = [self.intrinsic_info['RGB'],self.intrinsic_info['RIGHT'],self.extrinsic_info]
-		self.pointcloud_manager = create_pointcloud_manager('first_camera',calibration_info)
-	
+
+		return calibration_info
+		
 	def _set_output_queue(self):
 		self.q_rgb = self.device_.getOutputQueue("rgb",maxSize = 1,blocking = False)
 		self.q_depth = self.device_.getOutputQueue("depth",maxSize = 1,blocking = False)
@@ -103,35 +104,6 @@ class DeviceManager():
 		depth = depth.flatten()/ZmmConversion
 		depth = np.reshape(depth,(self.size[1],self.size[0]))
 		return depth
-	
-	def _determinate_object_location(self,image_to_write,points_cloud_data,detections):
-
-		xyz_points = points_cloud_data['XYZ_map_valid']
-		for detection in detections:
-			xmin,ymin,xmax,ymax = detection[2]
-			xcenter = ((xmin+xmax)//2)
-			ycenter = ((ymin+ymax)//2)
-			offset = 10
-			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
-			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
-			useful_value = useful_value[np.any(useful_value != 0,axis=1)]
-			if useful_value.shape[0] >1:
-				avg_pos_obj = (np.mean(useful_value,axis=0)*1000).astype(int)
-			else:
-				avg_pos_obj= (useful_value*1000).astype(int)
-			if not np.all(avg_pos_obj == 0):
-				try:
-					x,y,z = avg_pos_obj.tolist()
-					cv2.putText(image_to_write,f"x: {x} mm",(xcenter+8,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
-					cv2.putText(image_to_write,f'y: {y} mm',(xcenter+8,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
-					cv2.putText(image_to_write,f'z: {z} mm',(xcenter+8,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
-				except Exception as e:
-					print(e)
-			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
-			#print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')
-
-		
-		return None
 
 	def pull_for_frames(self):
 		''' 
@@ -162,33 +134,18 @@ class DeviceManager():
 				frames['color_image'] = rgb_foto.getCvFrame()
 				frames['depth'] = self._convert_depth(depth.getFrame()) 
 				frames['disparity_image'] = cv2.applyColorMap(disparity_frame.getFrame(),cv2.COLORMAP_JET)#*(255 /self.max_disparity)).astype(np.uint8)
-				if self.calibration.value == 0:
-					frames['color_image'] = visualise_Axes(frames['color_image'],self.pointcloud_manager.calibration_info)
-					self.pointcloud_manager.PointsCloudManagerStartCalculation(depth_image=frames['depth'],
-																		   color_image=frames['color_image'],
-																		   APPLY_ROI=False,
-																		   Kdecimation=1,
-																		   ZmmConversion=1,
-																		   depth_threshold=0.001,
-																		   viewROI=self.pointcloud_manager.viewROI
-																		   )
-					while not self.pointcloud_manager.HasData():
-						pass
-					points_cloud_data = self.pointcloud_manager.PointsCloudManagerGetResult()
 				if nn_foto is not None:
 					frames['nn_input'] = nn_foto.getCvFrame()
 					if detections is not None:
 						detections = self._normalize_detections(detections)
 						self._write_detections_on_image(frames['color_image'],detections)
-						_ = self._determinate_object_location(frames['color_image'],points_cloud_data,detections)
-
-				
-				return state_frame,frames
+						return state_frame,frames,detections
+				return state_frame,frames,None
 			else:
 				frame_count += 1
 				if frame_count > 10:
 					print('empty_frame: ',frame_count)
-				return False,None
+				return False,None,None
 
 	def get_intrinsic(self):
 		self.intrinsic_info = {}

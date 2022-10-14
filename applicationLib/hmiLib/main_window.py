@@ -42,6 +42,12 @@ class MainWindow(QMainWindow):
 		self.videohandler.update_image.connect(self.update_screen)
 		self.videohandler.start()
 
+	def _start_external_detection(self):
+		if self.running_mode.value != 1:
+			self.running_mode.value = 1
+		else:
+			self.running_mode.value = 0
+
 	def update_screen(self,images):
 
 		for key,image in images.items():
@@ -60,7 +66,7 @@ class MainWindow(QMainWindow):
 			self.video.stop()
 			time.sleep(0.3)
 			self.video = None
-			self.running_mode.value = 1
+			self.running_mode.value = 2
 			self.video = VideoCamera((1920,1080),30,self.detection_mode,self.running_mode)
 			_ = self.video.calibration_state.get()
 			time.sleep(1)
@@ -324,6 +330,8 @@ class MainWindow(QMainWindow):
 		self.toggle.stateChanged.connect(self.video_state)
 		# start autocalibration for camera
 		self.autocalibration.clicked.connect(self._start_autocalibration)
+		# start external detection 
+		self.startdetection.clicked.connect(self._start_external_detection)
 
 	def video_state(self):
 

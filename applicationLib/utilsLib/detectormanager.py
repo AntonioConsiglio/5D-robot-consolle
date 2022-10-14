@@ -5,6 +5,7 @@ import torch
 from torch.backends import cudnn
 import time
 
+
 class DetectionManager():
 
     def __init__(self):
@@ -16,7 +17,7 @@ class DetectionManager():
             cudnn.benchmark = True
             start = time.time()
             frame,detections = detect(opt,frame,self.device,self.model,self.names,self.colors)
-            print(f"EXECUTION TIME: {(time.time() - start)*1000} ms")
+            # print(f"EXECUTION TIME: {(time.time() - start)*1000} ms")
         return frame,detections
 
     def load_yolor_model(self):

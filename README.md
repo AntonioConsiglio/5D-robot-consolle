@@ -7,7 +7,7 @@
 5) Now it is possibile to calibrate the OAK-D Lite to world cordinate using a simple chessboard.
    Here an example of what is possible using a custom ssd blob model and the calibrated camera.
    
-![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/main/images/example-oak-d-lite.gif)
+![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/main/images/example_detection.gif)
 
 6) TODO: Develop the pick and place function.
 

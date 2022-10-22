@@ -1,5 +1,7 @@
+from queue import Queue
 import sys
 import multiprocessing
+from threading import Thread
 
 from PySide2.QtWidgets import QApplication,QMainWindow
 from PySide2.QtGui import QImage,QPixmap
@@ -28,6 +30,8 @@ class MainWindow(QMainWindow):
 		self._define_axis_variables()
 		self.detection_mode = multiprocessing.Value('i',0)
 		self.running_mode = multiprocessing.Value('i',0) #0 normal mode / 1 detection mode
+		self.answarequeue = Queue()
+		self.donequeue = Queue()
 		self.connection_button.setStyleSheet(self.BStyle.green_button)
 		# self.baud_rate.addItems(baud_rates)
 		self.trd1 = self.trd2 = self.trd3 = None
@@ -38,8 +42,9 @@ class MainWindow(QMainWindow):
 			self.detection_mode.value = 2
 		self.running_mode.value = 0
 		self.video = VideoCamera(size,fps,self.detection_mode,self.running_mode)
-		self.videohandler = VideoHandler(self.video.imgqueue,self.running_mode)
+		self.videohandler = VideoHandler(self.video.imgqueue,self.running_mode,self.video.cordinates_queue)
 		self.videohandler.update_image.connect(self.update_screen)
+		self.videohandler.newcordinates.connect(self._take_pieces_process)
 		self.videohandler.start()
 
 	def _start_external_detection(self):
@@ -77,16 +82,58 @@ class MainWindow(QMainWindow):
 		self.socket_arduino.connection_state.connect(lambda stato: self._change_button_color(self.connection_button,stato))
 		self.socket_arduino.reader.message_recived.connect(self._update_angles_view)
 	
+	def _take_pieces_process(self,cordinates):
+		oldrunningmode = self.running_mode.value
+		self.running_mode.value = 4
+		t = Thread(target = self._take_pieces,args=[cordinates,oldrunningmode])
+		t.start()
+			
+	
+	def _take_pieces(self,cordinates,oldvalue):
+		
+		self.answarequeue.put('go_next')
+		for cordinate in cordinates:
+			_ = self.answarequeue.get()
+			cordinate[0] = 120-cordinate[0]
+			cordinate[1] = cordinate[1]+75
+			cordinate[2]= 70-cordinate[2]
+			if self.inrange(cordinate):
+				self.calculate_inverse_kinematics(cordinate)
+			else:
+				self.answarequeue.put('noInRange')
+		_ = self.answarequeue.get()
+		self.running_mode.value = oldvalue
+
+	def inrange(self,cordinate):
+		xrange = [-100,100]
+		yrange = [50,200]
+		zrange = [45,150]
+		x,y,z = cordinate
+		if x < xrange[0] or x > xrange[1]:
+			return False
+		if y < yrange[0] or y > yrange[1]:
+			return False
+		if z < zrange[0] or z > zrange[1]:
+			return False
+		return True
+
 	def calculate_forward_kinematics(self,list_angles):
 		list_angles = robot_to_python_angles(list_angles)
 		tm  = self.robot_object.compute_forward_kinematics(list_angles)		
 		self.x_pos, self.y_pos, self.z_pos = tm[:3,3]
 		self.update_xyz_lcd() 
 
-	def calculate_inverse_kinematics(self):
-		self.x_pos = int(self.x_edit.text().strip())
-		self.y_pos = int(self.y_edit.text().strip())
-		self.z_pos = int(self.z_edit.text().strip())
+	def calculate_inverse_kinematics(self,cordinate=None):
+
+		if cordinate is None:
+			self.x_pos = int(self.x_edit.text().strip())
+			self.y_pos = int(self.y_edit.text().strip())
+			self.z_pos = int(self.z_edit.text().strip())
+		else:
+			x,y,z = cordinate
+			self.x_pos = int(x)
+			self.y_pos = int(y)
+			self.z_pos = int(z)
 		self.update_xyz_lcd()
 		target = [self.x_pos,self.y_pos,self.z_pos]
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
@@ -180,6 +227,9 @@ class MainWindow(QMainWindow):
 				self.lcd_joint6.display(self.joint6)
 			elif data == b'35':
 				self.reciving_current_angles = True
+			elif data == b'555':
+				if self.running_mode.value == 4:
+					self.answarequeue.put('go_next')
 		else:
 			if self.number_angle == 0:
 				self.joint6 = int(data.decode('utf-8'))
@@ -216,7 +266,6 @@ class MainWindow(QMainWindow):
 		elif stato == 'disconnected':
 			button.setStyleSheet(self.BStyle.green_button)
 			button.setText('CONNECT')
-
 
 	def run_thread_task(self,**kwargs):
 		if self.trd1 is None:
@@ -263,8 +312,6 @@ class MainWindow(QMainWindow):
 			if state:
 				self.finished.emit()
 			
-					
-
 	def _define_variables(self):
 		# angles variables
 		self.joint1 = 0

@@ -14,6 +14,7 @@ SoftwareSerial Bluetooth(2,3);
 int servobPos, servo1Pos, servo2Pos, servop1Pos, servop2Pos, servop3Pos; 
 // servobPos, servo1Pos, servo2Pos, servop1Pos, servop2Pos, servop3Pos --- corrispondenza con indici array; 
 int current_angle[6] ={}; //posizione corrente 
+int home_angles[6] = {90,110,180,90,0,160};
 int servobPos3[50], servo1Pos3[50], servo2Pos3[50], servop1Pos3[50], servop2Pos3[50], servop3Pos3[50]; //storing positions
 bool state = true;
 int angles[5] = {};
@@ -455,7 +456,8 @@ void loop() {
 
     if (m == 17) {
       //Bluetooth.println("s");
-      run_kinematics_motion();
+      run_kinematics_motion(false);
+      run_kinematics_motion(true);
       m = 0;
       state = true;
     }

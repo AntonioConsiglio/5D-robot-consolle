@@ -63,6 +63,7 @@ class ArduinoConnection(QObject):
 					self.reader.connection_state = True
 					self.reader.start()
 					self.arduino.write(b'35')
+					print('first send done')
 				except:
 					print('no connection available')
 					self.connection_state.emit('no_connection')
@@ -100,7 +101,7 @@ class ArduinoReader(QThread):
 			message = b''
 			while self.socket.in_waiting:
 				if  self.first_send:
-					time.sleep(0.01)
+					time.sleep(0.05)
 					self.set_first_send(False)
 				lettera = self.socket.read(1)#.decode('utf-8')
 				if lettera != b'\r':

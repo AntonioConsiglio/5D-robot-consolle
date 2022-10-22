@@ -157,7 +157,7 @@ background-color:qlineargradient(spread:pad, x1:0, y1:0, x2:1, y2:0, stop:0 rgba
        <string/>
       </property>
       <property name="pixmap">
-       <pixmap>../images/robot.png</pixmap>
+       <pixmap>./images/robot.png</pixmap>
       </property>
      </widget>
     </widget>

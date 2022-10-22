@@ -34,16 +34,28 @@ void split_string_by(String to_split,char splitter)
 }
 }
 
-void run_kinematics_motion() 
+void run_kinematics_motion(bool home) 
 {
   bool servb_done = false;
   bool serv1_done = false;
   bool serv2_done = false;
   bool servp1_done = false;
   bool servp2_done = false;
+  bool state = true;
   while (state) 
   {
-    if (Bluetooth.available() > 0) 
+    if (home)
+    {
+      state = false;
+      index_inverse = 0;
+      running_kinematic = true;
+      for (int ang=0;ang<6;ang++)
+      {
+        angles[ang] = home_angles[ang];
+      }
+
+    }
+    else if (Bluetooth.available() > 0) 
     {
       String datas = Bluetooth.readString();
       split_string_by(datas,',');
@@ -64,6 +76,8 @@ void run_kinematics_motion()
       serv2_done = false;
       servp1_done = false;
       servp2_done = false;
+      if (home){
+      Bluetooth.println("555");}
     }
     else
     {

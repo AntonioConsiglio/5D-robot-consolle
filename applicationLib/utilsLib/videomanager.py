@@ -18,11 +18,13 @@ class VideoHandler(QThread):
 
 	update_image = Signal(np.ndarray)
 	camera_state = Signal(bool)
+	newcordinates = Signal(list)
 
-	def __init__(self,image_queue,eventstate):
+	def __init__(self,image_queue,eventstate,cordinatesqueue):
 		super(VideoHandler,self).__init__()
 		self.runtime_state = eventstate 
 		self.image_queue = image_queue
+		self.cordinatesqueue = cordinatesqueue
 		self.state = True
 
 	def run(self):
@@ -36,6 +38,8 @@ class VideoHandler(QThread):
 			if self.runtime_state.value == 1:
 				image = self.image_queue.get()
 				self.update_image.emit(image)
+				if not self.cordinatesqueue.empty():
+					self.newcordinates.emit(self.cordinatesqueue.get())
 			
 			if not self.state or self.runtime_state.value == 2:
 				break
@@ -57,13 +61,15 @@ class VideoCamera():
 		self.pointcloud_manager = None
 		self.imgqueue = Queue()
 		self.stoqueue = Queue()
+		self.cordinates_queue = Queue()
 		self.calibration_state = Queue()
 		self.p = Process(name='DeviceManager',target = self.run,args = [self.size,self.fps,self.nn_activate,
 																		self.running_mode,self.stoqueue,
-																		self.imgqueue,self.calibration_state])
+																		self.imgqueue,self.calibration_state,
+																		self.cordinates_queue])
 		self.p.start()
 		
-	def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue,calibrationstate):
+	def run(self,size,fps,nn_activate,running_mode,stoqueue,imgqueue,calibrationstate,cordinatesqueue):
 		self.oakd_camera = config.OAKD_CAMERA
 		try:
 			self.camera = DeviceManager(size,fps,nn_mode = nn_activate,calibration_mode=running_mode)
@@ -77,7 +83,8 @@ class VideoCamera():
 		self.detector_manager.load_yolor_model()
 		self.running_mode = running_mode
 		self.calibration_state = calibrationstate
-		
+		self.cordinates_queue = cordinatesqueue
+		self.cordinates_sended = 0
 		while stoqueue.empty():
 			toc = time.time()
 			if self.running_mode.value == 0: # only camera
@@ -116,6 +123,11 @@ class VideoCamera():
 						cordinates = self.pointcloud_manager._determinate_object_location(frames['color_image'],
 																			 			  points_cloud_data,
 																			 			  detections)
+						if len(cordinates)>0:
+							if self.cordinates_sended == 0:
+								self.cordinates_queue.put(cordinates)
+								self.cordinates_sended+=1
+						frames['color_image'] = visualise_Axes(frames['color_image'],self.pointcloud_manager.calibration_info)																
 					self.imgqueue.put(write_fps(toc,frames))
 					
 			
@@ -128,6 +140,11 @@ class VideoCamera():
 			
 			if self.running_mode.value == 3: #Edge detection mode
 				pass
+			
+			if self.running_mode.value == 4: #waiting robot picking objects
+				if self.cordinates_sended > 0:
+					self.cordinates_sended = 0
+				time.sleep(0.2)
 
 			if not stoqueue.empty():
 				break

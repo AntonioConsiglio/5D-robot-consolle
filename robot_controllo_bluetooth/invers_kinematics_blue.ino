@@ -58,6 +58,7 @@ void run_kinematics_motion(bool home)
     else if (Bluetooth.available() > 0) 
     {
       String datas = Bluetooth.readString();
+      Serial.println(datas);
       split_string_by(datas,',');
       state = false;
       index_inverse = 0;
@@ -77,7 +78,7 @@ void run_kinematics_motion(bool home)
       servp1_done = false;
       servp2_done = false;
       if (home){
-      Bluetooth.println("555");}
+      Bluetooth.println("54");}
     }
     else
     {

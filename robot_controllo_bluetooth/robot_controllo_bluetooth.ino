@@ -40,7 +40,7 @@ void setup() {
   servo_p3.attach(9); // motore presa
   Serial.begin(38400);
   Bluetooth.begin(38400);
-  Bluetooth.setTimeout(10);
+  Bluetooth.setTimeout(0.5);
   delay(25);
 
 
@@ -250,6 +250,9 @@ void loop() {
     if (dataIn == 17) {
       m = 17;
     }
+    if (dataIn == 18) {
+      m = 18;
+    }
     if (dataIn == 35){
       m = 35;
     }
@@ -455,6 +458,12 @@ void loop() {
     }
 
     if (m == 17) {
+      //Bluetooth.println("s");
+      run_kinematics_motion(false);
+      m = 0;
+      state = true;
+    }
+    if (m == 18) {
       //Bluetooth.println("s");
       run_kinematics_motion(false);
       run_kinematics_motion(true);

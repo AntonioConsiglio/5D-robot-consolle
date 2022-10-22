@@ -37,6 +37,7 @@ class PointsCloudManager:
 										  depth_threshold,
 										  viewROI)
 			except Exception as e:
+				print('POINTS CLOUD ERROR')
 				print(e)
 			if result:
 				self.data = result
@@ -61,18 +62,22 @@ class PointsCloudManager:
 			useful_value = xyz_points[ycenter-offset:ycenter+offset,xcenter-offset:xcenter+offset]
 			useful_value = useful_value.reshape((useful_value.shape[0]*useful_value.shape[1],3))
 			useful_value = useful_value[np.any(useful_value != 0,axis=1)]
-			if useful_value.shape[0] >1:
-				avg_pos_obj = (np.mean(useful_value,axis=0)*1000).astype(int)
+			if useful_value.size == 0:
+				continue 
+			elif useful_value.shape[0] >1:
+				avg_pos_obj = np.mean(useful_value,axis=0)*1000
 			else:
-				avg_pos_obj= (useful_value*1000).astype(int)
+				avg_pos_obj= useful_value[0]*1000
+			avg_pos_obj = avg_pos_obj.astype(int)	
 			if not np.all(avg_pos_obj == 0):
-				cordinates.append(avg_pos_obj.tolist())
 				try:
 					x,y,z = avg_pos_obj.tolist()
 					cv2.putText(image_to_write,f"x: {x} mm",(xcenter+8,ycenter-30),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
 					cv2.putText(image_to_write,f'y: {y} mm',(xcenter+8,ycenter-15),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
 					cv2.putText(image_to_write,f'z: {z} mm',(xcenter+8,ycenter),cv2.FONT_HERSHEY_SIMPLEX,0.5,(255,0,0),2)
+					cordinates.append(avg_pos_obj.tolist())
 				except Exception as e:
+					print('CALCULATE OBJECT LOCATION')
 					print(e)
 			cv2.circle(image_to_write,(xcenter,ycenter),3,(255,0,0),-1)
 			#print(f'The object {detection[0]} has an average position of: {avg_pos_obj} mm')

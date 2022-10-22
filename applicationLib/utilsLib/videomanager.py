@@ -85,6 +85,7 @@ class VideoCamera():
 		self.calibration_state = calibrationstate
 		self.cordinates_queue = cordinatesqueue
 		self.cordinates_sended = 0
+		start_sending = None
 		while stoqueue.empty():
 			toc = time.time()
 			if self.running_mode.value == 0: # only camera
@@ -143,8 +144,9 @@ class VideoCamera():
 			
 			if self.running_mode.value == 4: #waiting robot picking objects
 				if self.cordinates_sended > 0:
+					print('SENDED')
+					start_sending = time.time()
 					self.cordinates_sended = 0
-				time.sleep(0.2)
 
 			if not stoqueue.empty():
 				break

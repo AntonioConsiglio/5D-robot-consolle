@@ -11,6 +11,7 @@ class ArduinoConnection(QObject):
 		super(ArduinoConnection,self).__init__()
 		self.arduino = None
 		self.data = None
+		self.connected = False
 		self.reader = ArduinoReader()
 	
 	def set_connection_variable(self,porta,baud_rate):
@@ -22,7 +23,7 @@ class ArduinoConnection(QObject):
 		self.porta = porta
 		self.baud_rate = baud_rate
 
-	def send_angles(self,angles_list,inverse_kinematics = False):
+	def send_angles(self,angles_list,inverse_kinematics = False,start_byte = b'17'):
 		
 		if inverse_kinematics:
 			angles_list = [math.degrees(i) for i in angles_list]
@@ -32,8 +33,8 @@ class ArduinoConnection(QObject):
 			angles_list = [i.get().strip() for i in angles_list]
 			angles_int_list = [math.radians(int(i)-90) for i in angles_list]
 			
-		self.arduino.write(b'17')
-		time.sleep(0.05)
+		self.arduino.write(start_byte)
+		time.sleep(0.1)
 		message = ','.join(angles_list)
 		self.arduino.write(message.encode('UTF-8'))
 
@@ -58,6 +59,7 @@ class ArduinoConnection(QObject):
 				try:
 					self.arduino = serial.Serial(port=self.porta,baudrate=self.baud_rate)
 					print('Connesso !')
+					self.connected = True
 					self.connection_state.emit('connected')
 					self.reader.set_serial(self.arduino)
 					self.reader.connection_state = True

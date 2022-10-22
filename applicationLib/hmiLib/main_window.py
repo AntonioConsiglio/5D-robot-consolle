@@ -85,23 +85,31 @@ class MainWindow(QMainWindow):
 	def _take_pieces_process(self,cordinates):
 		oldrunningmode = self.running_mode.value
 		self.running_mode.value = 4
-		t = Thread(target = self._take_pieces,args=[cordinates,oldrunningmode])
-		t.start()
+		if self.socket_arduino.connected:
+			t = Thread(target = self._take_pieces,args=[cordinates,oldrunningmode])
+			t.start()
+		else:
+			time.sleep(0.05)
+			self.running_mode.value = oldrunningmode
 			
 	
 	def _take_pieces(self,cordinates,oldvalue):
-		
+		time.sleep(0.05)
 		self.answarequeue.put('go_next')
 		for cordinate in cordinates:
+			time.sleep(0.01)
 			_ = self.answarequeue.get()
-			cordinate[0] = 120-cordinate[0]
+			cordinate[0] = 115-cordinate[0]
 			cordinate[1] = cordinate[1]+75
-			cordinate[2]= 70-cordinate[2]
+			cordinate[2]= 60-cordinate[2]
 			if self.inrange(cordinate):
-				self.calculate_inverse_kinematics(cordinate)
+				self.calculate_inverse_kinematics(cordinate,b'18')
 			else:
 				self.answarequeue.put('noInRange')
-		_ = self.answarequeue.get()
+		try:
+			_ = self.answarequeue.get(timeout=1)
+		except:
+			pass
 		self.running_mode.value = oldvalue
 
 	def inrange(self,cordinate):
@@ -123,7 +131,7 @@ class MainWindow(QMainWindow):
 		self.x_pos, self.y_pos, self.z_pos = tm[:3,3]
 		self.update_xyz_lcd() 
 
-	def calculate_inverse_kinematics(self,cordinate=None):
+	def calculate_inverse_kinematics(self,cordinate=None,start_byte=None):
 
 		if cordinate is None:
 			self.x_pos = int(self.x_edit.text().strip())
@@ -137,7 +145,10 @@ class MainWindow(QMainWindow):
 		self.update_xyz_lcd()
 		target = [self.x_pos,self.y_pos,self.z_pos]
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
-		self.__send_angles([j6,j5,j4,j3,j2],True)
+		if start_byte is None:
+			self.__send_angles([j6,j5,j4,j3,j2],True)
+		else:
+			self.__send_angles([j6,j5,j4,j3,j2],True,start_byte)
 	
 	def calculate_inverse_kinematics_joystic(self,direction,qnt):
 
@@ -152,9 +163,9 @@ class MainWindow(QMainWindow):
 		_,j6,j5,j4,j3,j2,_ = self.robot_object.compute_inverse_kinematics(target)
 		self.__send_angles([j6,j5,j4,j3,j2],True)
 
-	def __send_angles(self,lista_angoli,inv_kine = False):
+	def __send_angles(self,lista_angoli,inv_kine = False,start_byte=b'17'):
 
-		angles = self.socket_arduino.send_angles(lista_angoli,inv_kine)
+		angles = self.socket_arduino.send_angles(lista_angoli,inv_kine,start_byte)
 		self.joint6,self.joint5,self.joint4,self.joint3,self.joint2 = angles
 		self.update_angle_lcd()
 	
@@ -227,7 +238,7 @@ class MainWindow(QMainWindow):
 				self.lcd_joint6.display(self.joint6)
 			elif data == b'35':
 				self.reciving_current_angles = True
-			elif data == b'555':
+			elif data == b'54':
 				if self.running_mode.value == 4:
 					self.answarequeue.put('go_next')
 		else:

@@ -9,7 +9,7 @@
    
 ![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/main/images/example_detection.gif)
 
-6) Developed the pick and place function. See the video linked below for the results:
+6) Developed the pick and place function. See the video for the results:
 
-https://www.youtube.com/watch?v=aZVqMUgobNk&t=3s
+[![Alt text](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/main/images/Screenshot_ROBOTPROJECT.png)](https://www.youtube.com/watch?v=aZVqMUgobNk)
 

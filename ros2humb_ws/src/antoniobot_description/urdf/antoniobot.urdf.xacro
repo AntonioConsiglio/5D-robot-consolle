@@ -1,0 +1,191 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="antoniobot">
+
+    <xacro:include filename="$(find antoniobot_description)/urdf/antoniobot_gazebo.xacro"/>
+    <xacro:include filename="$(find antoniobot_description)/urdf/antoniobot_ros2_control.xacro"/>
+
+    <xacro:property name="scale" value="0.01 0.01 0.01"/>
+    <xacro:property name="PI" value="3.14159"/>
+    <xacro:property name="velocity" value="10.0"/>
+    <xacro:property name="effort" value="30.0"/>
+
+    <xacro:macro name="default_inertia" params="mass">
+        <inertial>
+            <mass value="${mass}"/>
+            <inertia ixx="1.0" ixy="0.0" ixz="0.0" iyy="1.0" iyz="0.0" izz="1.0"/>
+        </inertial> 
+    </xacro:macro>
+
+    <xacro:macro name="default_transmission" params="number">
+        <transmission name="transmission_${number}">
+            <plugin>transmission_interface/SimpleTransmission</plugin>
+            <actuator name="motor_${number}" role="actuator1"/>
+            <joint name="joint_${number}" role="joint1">
+                <mechanical_reduction>1.0</mechanical_reduction>
+            </joint> 
+        </transmission>    
+    </xacro:macro>
+    
+    <link name="world_link"></link>
+    
+    <link name="base_link">
+        <visual>
+            <origin xyz="0.60625 0.60625 0.0" rpy="${PI/2} 0.0 -${PI/2}"/>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/base_link.STL" scale="${scale}"/>
+            </geometry>
+        </visual>
+        <collision>
+            <origin xyz="0.60625 0.60625 0.0" rpy="${PI/2} 0.0 -${PI/2}"/>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/base_link.STL" scale="${scale}"/>
+            </geometry>
+        </collision>
+        <xacro:default_inertia mass="1.0" />    
+    </link>
+
+    <joint name="virtual_joint" type="fixed">
+        <parent link="world_link"/>
+        <child link="base_link"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>        
+    </joint>
+
+    <link name="shoulderZ">
+        <visual>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/shoulderZ.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.48 0.48 0.0" rpy="${PI/2} 0.0 0.0"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/shoulderZ.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.48 0.48 0.0" rpy="${PI/2} 0.0 0.0"/>
+        </collision>
+        <xacro:default_inertia mass="1.0" />  
+    </link>
+
+    <joint name="joint_1" type="revolute">
+        <parent link="base_link"/>
+        <child link="shoulderZ"/>
+        <origin xyz="0 0 0.585" rpy="0 0 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="shoulderY">
+        <visual>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/shoulderY.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.03 -0.28 -0.26" rpy="${PI/2} 0 ${PI/2}"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/shoulderY.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.03 -0.28 -0.26" rpy="${PI/2} 0 ${PI/2}"/>
+        </collision>
+        <xacro:default_inertia mass="1.0" />      
+    </link>
+
+    <joint name="joint_2" type="revolute">
+        <parent link="shoulderZ"/>
+        <child link="shoulderY"/>
+        <origin xyz="0.04 0.1392 0.4028" rpy="0 0 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
+        <axis xyz="1 0 0"/>
+    </joint>
+
+    <link name="elbow">
+        <visual>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/elbow.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="0 -0.25 -0.2" rpy="0 -${PI/2} 0"/>
+        </visual>  
+        <collision>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/elbow.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="0 -0.25 -0.2" rpy="0 -${PI/2} 0"/>
+        </collision>
+        <xacro:default_inertia mass="0.5" />  
+    </link>
+
+    <joint name="joint_3" type="revolute">
+        <parent link="shoulderY"/>
+        <child link="elbow"/>
+        <origin xyz="0.0 0.0 1.2" rpy="${PI/4} 0 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
+        <axis xyz="1 0 0"/>
+    </joint>   
+
+    <link name="wristY">
+        <visual>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/wristY.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.115 0 -0.135" rpy="0 0 0"/>
+        </visual>
+        <collision>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/wristY.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="-0.115 0 -0.135" rpy="0 0 0"/>
+        </collision>
+        <xacro:default_inertia mass="0.5" /> 
+    </link>
+
+    <joint name="joint_4" type="revolute">
+        <parent link="elbow"/>
+        <child link="wristY"/>
+        <origin xyz="-0.135 0.916 -0.053" rpy="0 -${PI/2} 0"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
+        <axis xyz="0 1 0"/>
+    </joint>
+
+    <link name="gripper_base">
+        <visual>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/gripper_base.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="0.14 -0.14 -0.16" rpy="0 -${PI/2} 0"/>
+        </visual> 
+        <collision>
+            <geometry>
+                <mesh filename="package://antoniobot_description/meshes/robot/gripper_base.STL" scale="${scale}"/>
+            </geometry>
+            <origin xyz="0.14 -0.14 -0.16" rpy="0 -${PI/2} 0"/>
+        </collision>     
+        <xacro:default_inertia mass="0.3" /> 
+    </link>
+
+    <joint name="joint_5" type="revolute">
+        <parent link="wristY"/>
+        <child link="gripper_base"/>
+        <origin xyz="0.05 0.28 -0.135" rpy="0 0 -${PI/2}"/>
+        <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
+        <axis xyz="0 0 1"/>
+    </joint>
+
+    <link name="gripper">
+        <default_inertia mass="0.3"></default_inertia>
+    </link>
+
+    <joint name="goal_joint" type="fixed">
+        <parent link="gripper_base"/>
+        <child link="gripper"/>
+        <origin xyz="-0.8 0.1 0" rpy="${PI/2} 0 ${PI}"/>
+    </joint>
+
+
+    <xacro:default_transmission number="1" />
+    <xacro:default_transmission number="2" />
+    <xacro:default_transmission number="3" />
+    <xacro:default_transmission number="4" />
+    <xacro:default_transmission number="5" />
+    
+    
+</robot>

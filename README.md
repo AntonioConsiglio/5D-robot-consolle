@@ -1,4 +1,5 @@
 # 5D-robot-consolle
+This is the updated project using ROS2-HUMBLE
 
 ## About the project
 In this repository, you'll find the code segment designed to create a PC application that interfaces with a 3D-printed robotic arm 

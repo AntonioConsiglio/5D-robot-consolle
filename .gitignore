@@ -21,6 +21,13 @@ prova_deco.py
 #yoloR model
 yolor/
 
+#ros2 FILES
+ros2humb_ws/log/*
+ros2humb_ws/build/*
+ros2humb_ws/install/*
+
+
+
 
 
 

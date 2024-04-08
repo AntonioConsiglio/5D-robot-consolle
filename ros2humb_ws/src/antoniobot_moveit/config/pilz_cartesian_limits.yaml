@@ -1,0 +1,5 @@
+cartesian_limits:
+  max_trans_velocity: 1.0
+  max_trans_accelleration: 2.25
+  max_trans_dec: -5.0
+  max_rot_vel: 1.57

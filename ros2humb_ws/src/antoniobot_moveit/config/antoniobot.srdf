@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<robot name="antoniobot">
+
+    <group name="arm">
+        <!-- <chain base_link="base_link" tip_link="gripper" /> -->
+        <joint name="joint_1"/>
+        <joint name="joint_2"/>
+        <joint name="joint_3"/>
+        <joint name="joint_4"/>
+        <joint name="joint_5"/>
+        <!-- <joint name="joint_6"/> -->
+    </group>
+
+    <group_state name="home" group="arm">
+        <joint name="joint_1" value="0"/>
+        <joint name="joint_2" value="0.35"/>
+        <joint name="joint_3" value="0.78"/>
+        <joint name="joint_4" value="0"/>
+        <joint name="joint_5" value="-1.57"/>
+        <!-- <joint name="joint_6" value="0"/> -->
+    </group_state>
+
+    <!-- Disable the callision that can't occur-->
+    <disable_collision link1="base_link" link2="shoulderZ" reason="Adjacent"></disable_collision>
+    <!-- <disable_collision link1="base_plate" link2="rgb_camera" reason="Never"></disable_collision> -->
+    <disable_collision link1="base_link" link2="shoulderY" reason="Never"></disable_collision>
+    <disable_collision link1="shoulderZ" link2="shoulderY" reason="Never"></disable_collision>
+    <disable_collision link1="wristY" link2="shoulderZ" reason="Never"></disable_collision>
+    <disable_collision link1="wristY" link2="shoulderY" reason="Never"></disable_collision>
+    <disable_collision link1="wristY" link2="base_link" reason="Never"></disable_collision>
+    <disable_collision link1="wristY" link2="gripper" reason="Never"></disable_collision>
+    <disable_collision link1="wristY" link2="gripper_base" reason="Never"></disable_collision>
+    <disable_collision link1="gripper_base" link2="shoulderZ" reason="Never"></disable_collision>
+    <disable_collision link1="gripper_base" link2="shoulderY" reason="Never"></disable_collision>
+    <disable_collision link1="gripper_base" link2="base_link" reason="Never"></disable_collision>
+    <disable_collision link1="gripper_base" link2="gripper" reason="Never"></disable_collision>
+</robot>

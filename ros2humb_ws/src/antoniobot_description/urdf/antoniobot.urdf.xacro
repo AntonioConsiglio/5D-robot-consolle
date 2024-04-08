@@ -171,7 +171,7 @@
     </joint>
 
     <link name="gripper">
-        <default_inertia mass="0.3"></default_inertia>
+        <xacro:default_inertia mass="0.3"/>
     </link>
 
     <joint name="goal_joint" type="fixed">
@@ -186,6 +186,7 @@
     <xacro:default_transmission number="3" />
     <xacro:default_transmission number="4" />
     <xacro:default_transmission number="5" />
+    <!-- <xacro:default_transmission number="6" /> -->
     
     
 </robot>

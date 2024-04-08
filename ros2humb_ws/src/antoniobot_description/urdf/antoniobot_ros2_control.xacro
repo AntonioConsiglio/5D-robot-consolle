@@ -23,6 +23,7 @@
         <xacro:default_joint number="3" minvalue="-${PI/2}" maxvalue="${PI/2}"/>
         <xacro:default_joint number="4" minvalue="-${PI/2}" maxvalue="${PI/2}"/>
         <xacro:default_joint number="5" minvalue="-${PI/2}" maxvalue="${PI/2}"/>
+        <!-- <xacro:default_joint number="6" minvalue="0" maxvalue="0.1"/> -->
         
     </ros2_control>
 </robot>

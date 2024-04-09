@@ -9,7 +9,7 @@
         <joint name="joint_3"/>
         <joint name="joint_4"/>
         <joint name="joint_5"/>
-        <!-- <joint name="joint_6"/> -->
+
     </group>
 
     <group_state name="home" group="arm">
@@ -18,7 +18,7 @@
         <joint name="joint_3" value="0.78"/>
         <joint name="joint_4" value="0"/>
         <joint name="joint_5" value="-1.57"/>
-        <!-- <joint name="joint_6" value="0"/> -->
+
     </group_state>
 
     <!-- Disable the callision that can't occur-->

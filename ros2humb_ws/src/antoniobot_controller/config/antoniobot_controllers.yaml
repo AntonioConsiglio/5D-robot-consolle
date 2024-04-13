@@ -24,6 +24,7 @@ arm_controller:
       - joint_4
       - joint_5
       # - joint_6
+      - virtual_yaw_joint
     
     command_interfaces: 
       - position

@@ -1,0 +1,9 @@
+<library path="antoniobot_controller">
+    <class name="antoniobot_controller/AntoniobotInterface"
+           type="antoniobot_controller::AntoniobotInterface"
+           base_class_type="hardware_interface::SystemInterface">
+        <description>
+            Antoniobot Hardware Interface
+        </description>
+    </class>
+</library>

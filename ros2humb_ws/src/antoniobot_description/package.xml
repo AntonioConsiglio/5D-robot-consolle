@@ -21,6 +21,6 @@
 
   <export>
     <build_type>ament_cmake</build_type>
-    <gazebo_ros gazebo_model_path = "/home/aconsiglio/5D-robot-consolle/ros2humb_ws/install/antoniobot_description/share" />  <!-- line added-->
+    <!-- <gazebo_ros gazebo_model_path = "/home/aconsiglio/5D-robot-consolle/ros2humb_ws/install/antoniobot_description/share" />  line added -->
   </export>
 </package>

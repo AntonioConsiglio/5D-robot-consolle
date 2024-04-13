@@ -16,6 +16,7 @@ moveit_simple_controller_manager:
       - joint_4
       - joint_5
       # - joint_6
+      - virtual_yaw_joint
   
   # gripper_controller:
   #   action_ns: follow_joint_trajectory

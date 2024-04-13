@@ -2,6 +2,8 @@
 #include <rclcpp_action/rclcpp_action.hpp>
 #include <antoniobot_msgs/action/target_goal.hpp>
 #include <moveit/move_group_interface/move_group_interface.h>
+#include <moveit_msgs/msg/constraints.hpp>
+#include <moveit_msgs/msg/orientation_constraint.hpp>
 
 #include <memory>
 
@@ -47,8 +49,32 @@ private:
         RCLCPP_INFO(get_logger(),"Executing goal!");
         
         auto arm_move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(),"arm");
-        //auto gripper_move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(),"gripper");
+        //geometry_msgs::msg::Quaternion currPose = arm_move_group.getCurrentPose().pose.orientation;
+        // geometry_msgs::msg::Quaternion currPose;
+        // currPose.set__x(0);
+        // currPose.set__y(0);
+        // currPose.set__z(0);
+        // currPose.set__w(1);
+        // RCLCPP_INFO_STREAM(get_logger(),"Current orientation of Virtual_Yaw_Link: " <<"x: "<< currPose.x <<" y: " <<currPose.y <<" z: " <<currPose.z <<" w: " <<currPose.w );
+        // //auto gripper_move_group = moveit::planning_interface::MoveGroupInterface(shared_from_this(),"gripper");
+        // // arm_move_group.setPoseReferenceFrame("base_link");
+        // //arm_move_group.setEndEffectorLink("virtual_yaw_link");
 
+        // moveit_msgs::msg::OrientationConstraint orientation_constraint;
+        // orientation_constraint.header.frame_id  = arm_move_group.getPoseReferenceFrame();
+        // orientation_constraint.set__link_name("virtual_yaw_link");
+        // orientation_constraint.orientation = currPose;
+        // orientation_constraint.absolute_x_axis_tolerance = 0.4;
+        // orientation_constraint.absolute_y_axis_tolerance = 0.4;
+        // orientation_constraint.absolute_z_axis_tolerance = 0.4;
+        // orientation_constraint.weight = 1.0;
+        
+        // moveit_msgs::msg::Constraints orientation_constraints;
+        // orientation_constraints.orientation_constraints.emplace_back(orientation_constraint);
+        
+        // arm_move_group.setPathConstraints(orientation_constraints);
+
+        arm_move_group.setPlanningTime(10.0);
         std::vector<double> arm_joint_goal {0.0,0.0,0.0};
         //std::vector<double> gripper_joint_goal;
 
@@ -59,8 +85,8 @@ private:
         bool arm_within_bounds = arm_move_group.setPositionTarget(arm_joint_goal[0],
                                                                   arm_joint_goal[1],
                                                                   arm_joint_goal[2],
-                                                                  "gripper");
-
+                                                                  "virtual_yaw_link");
+                                                                  
         if(!arm_within_bounds)
         {
             RCLCPP_WARN(rclcpp::get_logger("rclcpp"),"Target joint position were outside the limits");
@@ -74,7 +100,8 @@ private:
         //bool gripper_plan_success = gripper_move_group.plan(gripper_plan) == moveit::core::MoveItErrorCode::SUCCESS;
 
         if(arm_plan_success) // && gripper_plan_success)
-        {
+        {   
+            
             RCLCPP_INFO(rclcpp::get_logger("rclcpp"),"Planner succed, moving the arm and gripper");
             arm_move_group.move();
             //gripper_move_group.move();

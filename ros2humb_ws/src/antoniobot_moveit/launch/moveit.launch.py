@@ -16,7 +16,6 @@ def generate_launch_description():
     
     moveit_config = (MoveItConfigsBuilder("antoniobot",package_name="antoniobot_moveit")
                     .robot_description(joinpath(get_package_share_directory("antoniobot_description"),"urdf","antoniobot.urdf.xacro"))
-                    .robot_description_kinematics(joinpath("config/kinematics.yaml"))
                     .robot_description_semantic(joinpath("config/antoniobot.srdf"))
                     .trajectory_execution(joinpath("config/moveit_controllers.yaml"))
                     .to_moveit_configs()

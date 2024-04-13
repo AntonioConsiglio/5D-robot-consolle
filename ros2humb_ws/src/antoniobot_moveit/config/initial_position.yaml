@@ -4,3 +4,4 @@ initial_position:
   joint_3: 0
   joint_4: 0
   joint_5: 0
+  virtual_yaw_joint: 0

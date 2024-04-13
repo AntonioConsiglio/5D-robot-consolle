@@ -10,6 +10,7 @@ endif()
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
 find_package(antoniobot_msgs REQUIRED)
+find_package(moveit_msgs REQUIRED)
 find_package(rclcpp_action REQUIRED)
 find_package(rclcpp_components REQUIRED)
 find_package(moveit_ros_planning_interface REQUIRED)
@@ -21,6 +22,7 @@ target_include_directories(task_server PRIVATE
 target_compile_definitions(task_server
   PRIVATE "SIMPLE_ACTION_CPP_BUILDING_DLL")
 ament_target_dependencies(task_server
+  "moveit_msgs"
   "antoniobot_msgs"
   "rclcpp"
   "rclcpp_action"

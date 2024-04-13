@@ -33,8 +33,8 @@ joint_limits:
     has_accelleration_limits: false
     max_accelleration: 0.0
   
-  # joint_6:
-  #   has_velocity_limits: true
-  #   max_velocity: 10.0
-  #   has_accelleration_limits: false
-  #   max_accelleration: 0.0
+  virtual_yaw_joint:
+    has_velocity_limits: true
+    max_velocity: 10.0
+    has_accelleration_limits: false
+    max_accelleration: 0.0

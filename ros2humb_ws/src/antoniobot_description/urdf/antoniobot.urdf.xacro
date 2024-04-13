@@ -1,6 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="antoniobot">
 
+    <xacro:arg name="is_sim" default="true"/>
+    
     <xacro:include filename="$(find antoniobot_description)/urdf/antoniobot_gazebo.xacro"/>
     <xacro:include filename="$(find antoniobot_description)/urdf/antoniobot_ros2_control.xacro"/>
 
@@ -180,6 +182,33 @@
         <origin xyz="-0.8 0.1 0" rpy="${PI/2} 0 ${PI}"/>
     </joint>
 
+    <!-- Virtual yaw link -->
+    <link name="virtual_yaw_link">
+        <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+            <box size="0.01 0.01 0.01" />
+        </geometry>
+        </visual>
+
+        <inertial>
+        <origin xyz="0 0 0" />
+        <mass value="1.0e-03" />
+        <inertia ixx="1.0e-03" ixy="0.0" ixz="0.0"
+                iyy="1.0e-03" iyz="0.0"
+                izz="1.0e-03" />
+        </inertial>
+    </link>
+
+        <!-- Virtual yaw joint -->
+    <joint name="virtual_yaw_joint" type="revolute">
+        <limit lower="-3.1415" upper="3.1415" effort="54.0" velocity="3.14"/>
+        <parent link="gripper"/>
+        <child link="virtual_yaw_link"/>
+        <axis xyz="0 0 1"/>
+        <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
+        <dynamics damping="0.0" friction="0.0"/>
+    </joint>
 
     <xacro:default_transmission number="1" />
     <xacro:default_transmission number="2" />
@@ -187,6 +216,12 @@
     <xacro:default_transmission number="4" />
     <xacro:default_transmission number="5" />
     <!-- <xacro:default_transmission number="6" /> -->
-    
+    <transmission name="transmission_6">
+        <plugin>transmission_interface/SimpleTransmission</plugin>
+        <actuator name="motor_6" role="actuator1"/>
+        <joint name="virtual_yaw_joint" role="joint1">
+            <mechanical_reduction>1.0</mechanical_reduction>
+        </joint> 
+    </transmission>    
     
 </robot>

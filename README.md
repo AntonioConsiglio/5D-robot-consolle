@@ -10,6 +10,12 @@ to the robot for it to reach the identified objects.
 
 This branch use ROS2 humble. To perform the IK moveit2 package is used, most of the code is written in c++.
 
+## Some Results
+
+### 1) Developed the hardware interface between ROS2 and Arduino. Throught an Action server it is possible to move the robot giving an x,y,z goal:
+
+![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/ros2humble/images/robot_example.gif)
+
 ## How to use it
 
 1) Install ROS2 humble or your Linux OS (Ubuntu 22.04) or use WSL2 by windows (This was my choiche)
@@ -40,12 +46,6 @@ This branch use ROS2 humble. To perform the IK moveit2 package is used, most of 
 4) I'm using the OAK-D Lite smart stereo camera...
 
       **- - - - -WORK IN PROGRESS- - - - -**
-
-## Some Results
-
-### 1) Developed the hardware interface between ROS2 and Arduino. Throught an Action server it is possible to move the robot giving an x,y,z goal:
-
-![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/ros2humble/images/robot_example.gif)
 
 
 

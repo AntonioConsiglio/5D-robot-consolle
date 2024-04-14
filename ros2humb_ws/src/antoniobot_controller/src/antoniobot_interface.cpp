@@ -165,7 +165,6 @@ namespace antoniobot_controller
         
         // Sleep for 2 seconds
         // std::this_thread::sleep_for(std::chrono::milliseconds(400));
-        // std::this_thread::sleep_for(std::chrono::milliseconds(400));
         send_to_arduino = true; 
 
         previous_position_commands_ = position_commands_;

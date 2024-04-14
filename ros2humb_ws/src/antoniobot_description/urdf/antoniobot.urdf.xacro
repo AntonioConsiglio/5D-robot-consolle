@@ -145,7 +145,7 @@
         <child link="wristY"/>
         <origin xyz="-0.135 0.916 -0.053" rpy="0 -${PI/2} 0"/>
         <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
-        <axis xyz="0 1 0"/>
+        <axis xyz="0 -1 0"/>
     </joint>
 
     <link name="gripper_base">
@@ -169,7 +169,7 @@
         <child link="gripper_base"/>
         <origin xyz="0.05 0.28 -0.135" rpy="0 0 -${PI/2}"/>
         <limit lower="-${PI/2}" upper="${PI/2}" velocity="${velocity}" effort="${effort}"/>
-        <axis xyz="0 0 1"/>
+        <axis xyz="0 0 -1"/>
     </joint>
 
     <link name="gripper">
@@ -205,7 +205,7 @@
         <limit lower="-3.1415" upper="3.1415" effort="54.0" velocity="3.14"/>
         <parent link="gripper"/>
         <child link="virtual_yaw_link"/>
-        <axis xyz="0 0 1"/>
+        <axis xyz="1 0 0"/>
         <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
         <dynamics damping="0.0" friction="0.0"/>
     </joint>

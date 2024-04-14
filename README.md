@@ -45,7 +45,7 @@ This branch use ROS2 humble. To perform the IK moveit2 package is used, most of 
 
 ### 1) Developed the hardware interface between ROS2 and Arduino. Throught an Action server it is possible to move the robot giving an x,y,z goal:
 
-![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/main/images/robot_example.gif)
+![](https://github.com/AntonioConsiglio/5D-robot-consolle/blob/ros2humble/images/robot_example.gif)
 
 
 

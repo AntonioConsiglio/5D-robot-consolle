@@ -26,6 +26,10 @@ ros2humb_ws/log/*
 ros2humb_ws/build/*
 ros2humb_ws/install/*
 
+ros2UI_ws/log/*
+ros2UI_ws/build/*
+ros2UI_ws/install/*
+
 
 
 
